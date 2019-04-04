@@ -11,6 +11,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -37,7 +39,6 @@ import lombok.Data;
  *  processingLimit (number) Limit of redelivery tries.
  *  processingTo (date) Date to interrupt redelivery processing.
  *  queue (string) Code to specify redelivery queue.
- *  session (string) Data access session code.
  *  status (enumeration) Recovery request processing status.
  *  version (string) Data access session code.
  * </pre>
@@ -48,6 +49,11 @@ import lombok.Data;
 @Data
 @SuppressWarnings("PersistenceUnitPresent")
 @XmlRootElement
+@Table(indexes = {
+    @Index(name = "idx_gd_status", unique = false, columnList = "status"),
+    @Index(name = "idx_gd_locker", unique = false, columnList = "locker, status"),
+    @Index(name = "idx_gd_queue", unique = false, columnList = "status, access, queue, parentQueue")
+})
 public class RecoveryOrder implements Serializable {
 
     @Id

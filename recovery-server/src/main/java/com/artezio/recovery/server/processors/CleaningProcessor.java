@@ -11,16 +11,16 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Recovery callback processor.
+ * Cleaning old data records processor.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Component
 @Slf4j
-public class CallbackProcessor implements Processor {
+public class CleaningProcessor implements Processor {
 
     /**
-     * Recovery callback processing definition.
+     * Cleaning old data records process definition.
      *
      * @param exchange Apache Camel ESB exchange message.
      * @throws Exception @see Exception
@@ -28,10 +28,6 @@ public class CallbackProcessor implements Processor {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     public void process(Exchange exchange) throws Exception {
-        StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
-        logMsg.append(" ").append(Thread.currentThread().getName());
-        log.debug(logMsg.toString());
-        Thread.sleep(5000);
     }
 
 }

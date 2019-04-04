@@ -3,7 +3,9 @@
 package com.artezio.recovery.server.routes.schedule;
 
 import com.artezio.recovery.server.processors.CallbackProcessor;
+import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
+import com.artezio.recovery.server.processors.ResumingProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -18,7 +20,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class ScheduleRoute extends SpringRouteBuilder {
+public class ScheduleRoutes extends SpringRouteBuilder {
 
     /**
      * Timer route ID.
@@ -29,11 +31,6 @@ public class ScheduleRoute extends SpringRouteBuilder {
      */
     private static final String TIMER_URL = "timer://" + TIMER_ID;
     /**
-     * Schedule timer period property.
-     */
-    @Value("${com.artezio.recovery.timer.period:100}")
-    private String timerPeriod;
-    /**
      * SEDA route ID.
      */
     public static final String SEDA_ID = "ScheduleSedaRoute";
@@ -42,10 +39,30 @@ public class ScheduleRoute extends SpringRouteBuilder {
      */
     private static final String SEDA_URL = "seda://" + SEDA_ID;
     /**
+     * Cleaning route ID.
+     */
+    public static final String CLEANING_ID = "ScheduleTimerRoute";
+    /**
+     * Cleaning route URL.
+     */
+    private static final String CLEANING_URL = "timer://" + CLEANING_ID;
+    
+    /**
+     * Schedule timer period property.
+     */
+    @Value("${com.artezio.recovery.timer.period:100}")
+    private String timerPeriod;
+    /**
      * Amount of SEDA concurrent consumers property.
      */
     @Value("${com.artezio.recovery.seda.consumers:10}")
     private int sedaConsumers;
+    /**
+     * Schedule cleaning period property.
+     */
+    @Value("${com.artezio.recovery.timer.period:15m}")
+    private String cleaningPeriod;
+    
     /**
      * Recovery callback processor.
      */
@@ -56,6 +73,16 @@ public class ScheduleRoute extends SpringRouteBuilder {
      */
     @Autowired
     private RestoringProcessor restoring;
+    /**
+     * Resuming error records processor.
+     */
+    @Autowired
+    private ResumingProcessor resuming;
+    /**
+     * Cleaning old data records processor.
+     */
+    @Autowired
+    private CleaningProcessor cleaning;
 
     /**
      * Recovery schedule Apache Camel routes definition.
@@ -82,6 +109,14 @@ public class ScheduleRoute extends SpringRouteBuilder {
                 .setExchangePattern(ExchangePattern.InOnly)
                 .process(restoring)
                 .process(callback);
+        // Define resuming and cleaning activities.
+        final String CLEANING_URI = CLEANING_URL + "?period=" + cleaningPeriod;
+        log.debug(CLEANING_URI);
+        from(CLEANING_URI)
+                .routeId(CLEANING_ID)
+                .process(resuming)
+                .process(cleaning);
+        
     }
 
 }
