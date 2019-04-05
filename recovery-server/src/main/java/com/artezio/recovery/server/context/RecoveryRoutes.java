@@ -1,11 +1,13 @@
 /*
  */
-package com.artezio.recovery.server.routes.schedule;
+package com.artezio.recovery.server.context;
 
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.processors.CallbackProcessor;
 import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
 import com.artezio.recovery.server.processors.ResumingProcessor;
+import com.artezio.recovery.server.processors.StoringProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -14,13 +16,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- * Recovery schedule Apache Camel routes class.
+ * Recovery Apache Camel routes class.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Component
 @Slf4j
-public class ScheduleRoutes extends SpringRouteBuilder {
+public class RecoveryRoutes extends SpringRouteBuilder {
 
     /**
      * Timer route ID.
@@ -41,11 +43,23 @@ public class ScheduleRoutes extends SpringRouteBuilder {
     /**
      * Cleaning route ID.
      */
-    public static final String CLEANING_ID = "ScheduleTimerRoute";
+    public static final String CLEANING_ID = "ScheduleCleaningRoute";
     /**
      * Cleaning route URL.
      */
     private static final String CLEANING_URL = "timer://" + CLEANING_ID;
+    /**
+     * Income route ID.
+     */
+    public static final String INCOME_ID = "IncomeRoute";
+    /**
+     * Income route URL.
+     */
+    public static final String INCOME_URL = "direct://" + INCOME_ID;
+    /**
+     * Income route URI.
+     */
+    private static final String INCOME_URI = INCOME_URL;
     
     /**
      * Schedule timer period property.
@@ -83,14 +97,26 @@ public class ScheduleRoutes extends SpringRouteBuilder {
      */
     @Autowired
     private CleaningProcessor cleaning;
+    /**
+     * Recovery request storing processor.
+     */
+    @Autowired
+    private StoringProcessor storing;
+    /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
 
     /**
-     * Recovery schedule Apache Camel routes definition.
+     * Recovery Apache Camel routes definition.
      *
      * @throws Exception @see Exception
      */
     @Override
     public void configure() throws Exception {
+        // Initializing data access.
+        dao.count();
         // Define schedule timer.
         final String TIMER_URI = TIMER_URL + "?period=" + timerPeriod;
         log.debug(TIMER_URI);
@@ -116,7 +142,13 @@ public class ScheduleRoutes extends SpringRouteBuilder {
                 .routeId(CLEANING_ID)
                 .process(resuming)
                 .process(cleaning);
-        
+        // Define income route.
+        log.debug(INCOME_URI);
+        from(INCOME_URI)
+                .routeId(INCOME_ID)
+                .setExchangePattern(ExchangePattern.InOut)
+                .process(storing);
+
     }
 
 }

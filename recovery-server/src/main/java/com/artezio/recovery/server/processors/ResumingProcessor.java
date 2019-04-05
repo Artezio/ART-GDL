@@ -2,9 +2,15 @@
  */
 package com.artezio.recovery.server.processors;
 
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -16,8 +22,21 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Component
+@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Slf4j
 public class ResumingProcessor implements Processor {
+    
+    /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
+    
+    /**
+     *  Property of flag to allow successfully processed orders cleaning.
+     */
+    @Value("${com.artezio.recovery.resuming.timeout.minutes:10}")
+    private int resumingMin;
 
     /**
      * Resuming error records process definition.
@@ -28,6 +47,8 @@ public class ResumingProcessor implements Processor {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     public void process(Exchange exchange) throws Exception {
+        Date resumingDate = new Date(System.currentTimeMillis() + resumingMin * 60_000);
+        dao.resumeOrders(resumingDate);
     }
 
 }

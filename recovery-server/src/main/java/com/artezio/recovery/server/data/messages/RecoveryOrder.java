@@ -30,6 +30,7 @@ import lombok.Data;
  *  description (string) Processing description.
  *  externalId (string) External message ID.
  *  locker (string) External code to lock new data storing if it exists.
+ *  lockerUp (boolean) Flag to indicate if locker is actual.
  *  message (string) Short specific recovery data.
  *  modified (date) Processing status modification date.
  *  parentQueue (string) Code to specify parent redelivery queue.
@@ -50,9 +51,8 @@ import lombok.Data;
 @SuppressWarnings("PersistenceUnitPresent")
 @XmlRootElement
 @Table(indexes = {
-    @Index(name = "idx_gd_status", unique = false, columnList = "status"),
-    @Index(name = "idx_gd_locker", unique = false, columnList = "locker, status"),
-    @Index(name = "idx_gd_queue", unique = false, columnList = "status, access, queue, parentQueue")
+    @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerUp"),
+    @Index(name = "idx_gd_queue", unique = false, columnList = "queue, parentQueue")
 })
 public class RecoveryOrder implements Serializable {
 
@@ -60,32 +60,34 @@ public class RecoveryOrder implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column
+    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date access;
-    @Column(length = 2000)
+    @Column(length = 2000, nullable = false)
     private String callbackUri;
-    @Column(length = 128)
+    @Column(length = 128, nullable = false)
     private ProcessingCodeEnum code;
-    @Column
+    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date created;
     @Column(length = 2000)
     private String description;
     @Column(length = 128)
     private String externalId;
-    @Column(length = 128)
+    @Column(length = 128, nullable = false)
     private String locker;
+    @Column(nullable = false)
+    private Boolean lockerUp;
     @Column(length = 2000)
     private String message;
-    @Column
+    @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
     private Date modified;
     @Column(length = 128)
     private String parentQueue;
     @Column(length = 2000)
     private String pause;
-    @Column
+    @Column(nullable = false)
     private Integer processingCount;
     @Column
     @Temporal(TemporalType.TIMESTAMP)
@@ -97,7 +99,7 @@ public class RecoveryOrder implements Serializable {
     private Date processingTo;
     @Column(length = 128)
     private String queue;
-    @Column(length = 128)
+    @Column(length = 128, nullable = false)
     private RecoveryStatusEnum status;
     @Column(length = 128)
     private String version;
