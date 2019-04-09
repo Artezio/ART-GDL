@@ -76,6 +76,11 @@ public class RecoveryRoutes extends SpringRouteBuilder {
      */
     @Value("${com.artezio.recovery.timer.period:15m}")
     private String cleaningPeriod;
+    /**
+     *  Property of flag to schedule processing.
+     */
+    @Value("${com.artezio.recovery.schedule.enebled:true}")
+    private boolean scheduleEnabled;
     
     /**
      * Recovery callback processor.
@@ -117,6 +122,15 @@ public class RecoveryRoutes extends SpringRouteBuilder {
     public void configure() throws Exception {
         // Initializing data access.
         dao.count();
+        // Define income route.
+        log.debug(INCOME_URI);
+        from(INCOME_URI)
+                .routeId(INCOME_ID)
+                .setExchangePattern(ExchangePattern.InOut)
+                .process(storing);
+        if (!scheduleEnabled) {
+            return;
+        }
         // Define schedule timer.
         final String TIMER_URI = TIMER_URL + "?period=" + timerPeriod;
         log.debug(TIMER_URI);
@@ -142,13 +156,6 @@ public class RecoveryRoutes extends SpringRouteBuilder {
                 .routeId(CLEANING_ID)
                 .process(resuming)
                 .process(cleaning);
-        // Define income route.
-        log.debug(INCOME_URI);
-        from(INCOME_URI)
-                .routeId(INCOME_ID)
-                .setExchangePattern(ExchangePattern.InOut)
-                .process(storing);
-
     }
 
 }

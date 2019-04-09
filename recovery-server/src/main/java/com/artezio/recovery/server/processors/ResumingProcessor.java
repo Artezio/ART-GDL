@@ -33,7 +33,7 @@ public class ResumingProcessor implements Processor {
     private IRecoveryOrderCrud dao;
     
     /**
-     *  Property of flag to allow successfully processed orders cleaning.
+     *  Property of resuming timeout in minutes.
      */
     @Value("${com.artezio.recovery.resuming.timeout.minutes:10}")
     private int resumingMin;
