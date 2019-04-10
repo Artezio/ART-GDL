@@ -64,7 +64,7 @@ public class RecoveryRoutes extends SpringRouteBuilder {
     /**
      * Schedule timer period property.
      */
-    @Value("${com.artezio.recovery.timer.period:100}")
+    @Value("${com.artezio.recovery.timer.period:50}")
     private String timerPeriod;
     /**
      * Amount of SEDA concurrent consumers property.
@@ -127,7 +127,7 @@ public class RecoveryRoutes extends SpringRouteBuilder {
         from(INCOME_URI)
                 .routeId(INCOME_ID)
                 .setExchangePattern(ExchangePattern.InOut)
-                .process(storing);
+                .process(storing).id(StoringProcessor.class.getSimpleName());
         if (!scheduleEnabled) {
             return;
         }
@@ -147,15 +147,15 @@ public class RecoveryRoutes extends SpringRouteBuilder {
         from(SEDA_URI)
                 .routeId(SEDA_ID)
                 .setExchangePattern(ExchangePattern.InOnly)
-                .process(restoring)
-                .process(callback);
+                .process(restoring).id(RestoringProcessor.class.getSimpleName())
+                .process(callback).id(CallbackProcessor.class.getSimpleName());
         // Define resuming and cleaning activities.
         final String CLEANING_URI = CLEANING_URL + "?period=" + cleaningPeriod;
         log.debug(CLEANING_URI);
         from(CLEANING_URI)
                 .routeId(CLEANING_ID)
-                .process(resuming)
-                .process(cleaning);
+                .process(resuming).id(ResumingProcessor.class.getSimpleName())
+                .process(cleaning).id(CleaningProcessor.class.getSimpleName());
     }
 
 }

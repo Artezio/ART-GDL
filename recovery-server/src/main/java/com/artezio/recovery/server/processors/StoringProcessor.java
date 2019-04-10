@@ -2,9 +2,16 @@
  */
 package com.artezio.recovery.server.processors;
 
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.types.PauseConfig;
+import com.artezio.recovery.server.data.types.RecoveryException;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -23,6 +30,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoringProcessor implements Processor {
 
     /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
+
+    /**
      * Recovery request storing process definition.
      *
      * @param exchange Apache Camel ESB exchange message.
@@ -30,7 +43,70 @@ public class StoringProcessor implements Processor {
      */
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.MANDATORY)
+    @SuppressWarnings("UseSpecificCatch")
     public void process(Exchange exchange) throws Exception {
+        StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
+        try {
+            Object exBody = exchange.getIn().getBody();
+            if (exBody instanceof RecoveryRequest) {
+                RecoveryRequest request = (RecoveryRequest) exBody;
+                RecoveryOrder newOrder = makeNewOrder(exchange, request);
+                RecoveryOrder storedOrder = dao.save(newOrder);
+                exchange.getIn().setBody(storedOrder);
+            } else if (exBody == null) {
+                logMsg.append(": No income request found.");
+                RecoveryException r = new RecoveryException(logMsg.toString());
+                throw r;
+            } else {
+                logMsg.append(": Wrong type of income request - ");
+                logMsg.append(exBody.getClass().getCanonicalName());
+                RecoveryException r = new RecoveryException(logMsg.toString());
+                throw r;
+            }
+        } catch (Exception e) {
+            throw e;
+        } catch (Throwable t) {
+            logMsg.append(": Unexpected storing error.");
+            RecoveryException r = new RecoveryException(logMsg.toString(), t);
+            throw r;
+        }
     }
 
+    /**
+     * Make DB order record from recovery client request.
+     * 
+     * @param exchange Apache Camel ESB exchange message.
+     * @param request Recovery client request message.
+     * @return Recovery DB order record.
+     * @throws Exception @see Exception
+     */
+    private RecoveryOrder makeNewOrder(Exchange exchange, RecoveryRequest request) 
+            throws Exception {
+        StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
+        if (request.getCallbackUri() == null) {
+            logMsg.append(": Callback URI is mandatory.");
+            RecoveryException r = new RecoveryException(logMsg.toString());
+            throw r;
+        }
+        if (request.getPause() != null && !PauseConfig.checkRule(request.getPause())) {
+            logMsg.append(": Wrong pause rule format. Pause rule pattern: ");
+            logMsg.append(PauseConfig.PAUSE_RULE_REGEX);
+            RecoveryException r = new RecoveryException(logMsg.toString());
+            throw r;
+        }
+        RecoveryOrder order = new RecoveryOrder();
+        order.setCallbackUri(request.getCallbackUri());
+        order.setExternalId(request.getExternalId());
+        order.setLocker(request.getLocker() == null 
+                ? UUID.randomUUID().toString()
+                : request.getLocker());
+        order.setMessage(request.getMessage());
+        order.setParentQueue(request.getParentQueue());
+        order.setPause(request.getPause());
+        order.setProcessingFrom(request.getProcessingFrom());
+        order.setProcessingLimit(request.getProcessingLimit());
+        order.setProcessingTo(request.getProcessingTo());
+        order.setQueue(request.getQueue());
+        return order;
+    }
 }
