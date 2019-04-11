@@ -15,6 +15,7 @@ import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 
@@ -23,25 +24,27 @@ import lombok.Data;
  * <pre>
  * Fields:
  *  id (number) Record identity.
- *  access (date) Record access date.
  *  callbackUri (string) Callback URI.
  *  code (enumeration) Short processing code.
- *  created (date) Record creation date.
  *  description (string) Processing description.
  *  externalId (string) External message ID.
  *  locker (string) External code to lock new data storing if it exists.
  *  lockerUp (boolean) Flag to indicate if locker is actual.
  *  message (string) Short specific recovery data.
- *  modified (date) Processing status modification date.
- *  parentQueue (string) Code to specify parent redelivery queue.
+ *  orderCreated (date) Record creation date.
+ *  orderModified (date) Processing status modification date.
+ *  orderOpened (date) Record opening access date.
+ *  orderUpdated (date) Record closing access date.
  *  pause (string) Recovery processing pause rule.
  *  processingCount (number) Number of redelivery tries.
  *  processingFrom (date) Date to start redelivery processing.
  *  processingLimit (number) Limit of redelivery tries.
  *  processingTo (date) Date to interrupt redelivery processing.
  *  queue (string) Code to specify redelivery queue.
+ *  queueParent (string) Code to specify parent redelivery queue.
  *  status (enumeration) Recovery request processing status.
- *  version (string) Data access session code.
+ *  versionCount (number) Data access session number.
+ *  versionId (string) Data access session code.
  * </pre>
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
@@ -52,7 +55,7 @@ import lombok.Data;
 @XmlRootElement
 @Table(indexes = {
     @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerUp"),
-    @Index(name = "idx_gd_queue", unique = false, columnList = "queue, parentQueue")
+    @Index(name = "idx_gd_queue", unique = false, columnList = "queue, queueParent")
 })
 public class RecoveryOrder implements Serializable {
 
@@ -60,16 +63,10 @@ public class RecoveryOrder implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date access;
     @Column(length = 2000, nullable = false)
     private String callbackUri;
     @Column(length = 128, nullable = false)
     private ProcessingCodeEnum code;
-    @Column(nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date created;
     @Column(length = 2000)
     private String description;
     @Column(length = 128)
@@ -82,9 +79,16 @@ public class RecoveryOrder implements Serializable {
     private String message;
     @Column(nullable = false)
     @Temporal(TemporalType.TIMESTAMP)
-    private Date modified;
-    @Column(length = 128)
-    private String parentQueue;
+    private Date orderCreated;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date orderModified;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date orderOpened;
+    @Column(nullable = false)
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date orderUpdated;
     @Column(length = 2000)
     private String pause;
     @Column(nullable = false)
@@ -99,9 +103,13 @@ public class RecoveryOrder implements Serializable {
     private Date processingTo;
     @Column(length = 128)
     private String queue;
+    @Column(length = 128)
+    private String queueParent;
     @Column(length = 128, nullable = false)
     private RecoveryStatusEnum status;
+    @Version
+    private Long versionCount;
     @Column(length = 128)
-    private String version;
+    private String versionId;    
 
 }

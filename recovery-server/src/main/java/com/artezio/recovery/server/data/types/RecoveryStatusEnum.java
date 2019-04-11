@@ -17,10 +17,6 @@ public enum RecoveryStatusEnum {
      * Recovery request is successfully processed.
      */
     SUCCESS,
-    /**
-     * Recovery request is expired.
-     */
-    EXPIRED,
      /**
      * Recovery request is completed with error.
      */

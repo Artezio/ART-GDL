@@ -6,7 +6,10 @@ import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import com.artezio.recovery.server.data.types.PauseConfig;
+import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryException;
+import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
+import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
@@ -43,44 +46,35 @@ public class StoringProcessor implements Processor {
      */
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.MANDATORY)
-    @SuppressWarnings("UseSpecificCatch")
     public void process(Exchange exchange) throws Exception {
         StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
-        try {
-            Object exBody = exchange.getIn().getBody();
-            if (exBody instanceof RecoveryRequest) {
-                RecoveryRequest request = (RecoveryRequest) exBody;
-                RecoveryOrder newOrder = makeNewOrder(exchange, request);
-                RecoveryOrder storedOrder = dao.save(newOrder);
-                exchange.getIn().setBody(storedOrder);
-            } else if (exBody == null) {
-                logMsg.append(": No income request found.");
-                RecoveryException r = new RecoveryException(logMsg.toString());
-                throw r;
-            } else {
-                logMsg.append(": Wrong type of income request - ");
-                logMsg.append(exBody.getClass().getCanonicalName());
-                RecoveryException r = new RecoveryException(logMsg.toString());
-                throw r;
-            }
-        } catch (Exception e) {
-            throw e;
-        } catch (Throwable t) {
-            logMsg.append(": Unexpected storing error.");
-            RecoveryException r = new RecoveryException(logMsg.toString(), t);
+        Object exBody = exchange.getIn().getBody();
+        if (exBody instanceof RecoveryRequest) {
+            RecoveryRequest request = (RecoveryRequest) exBody;
+            RecoveryOrder newOrder = makeNewOrder(exchange, request);
+            RecoveryOrder storedOrder = dao.save(newOrder);
+            exchange.getIn().setBody(storedOrder);
+        } else if (exBody == null) {
+            logMsg.append(": No income request found.");
+            RecoveryException r = new RecoveryException(logMsg.toString());
+            throw r;
+        } else {
+            logMsg.append(": Wrong type of income request: ");
+            logMsg.append(exBody.getClass().getCanonicalName());
+            RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }
     }
 
     /**
      * Make DB order record from recovery client request.
-     * 
+     *
      * @param exchange Apache Camel ESB exchange message.
      * @param request Recovery client request message.
      * @return Recovery DB order record.
      * @throws Exception @see Exception
      */
-    private RecoveryOrder makeNewOrder(Exchange exchange, RecoveryRequest request) 
+    private RecoveryOrder makeNewOrder(Exchange exchange, RecoveryRequest request)
             throws Exception {
         StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
         if (request.getCallbackUri() == null) {
@@ -94,19 +88,30 @@ public class StoringProcessor implements Processor {
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }
+        Date now = new Date(System.currentTimeMillis());
         RecoveryOrder order = new RecoveryOrder();
         order.setCallbackUri(request.getCallbackUri());
+        order.setCode(ProcessingCodeEnum.NEW);
+        order.setDescription("Order stored.");
         order.setExternalId(request.getExternalId());
-        order.setLocker(request.getLocker() == null 
+        order.setLocker(request.getLocker() == null
                 ? UUID.randomUUID().toString()
                 : request.getLocker());
+        order.setLockerUp(Boolean.TRUE);
         order.setMessage(request.getMessage());
-        order.setParentQueue(request.getParentQueue());
+        order.setOrderCreated(now);
+        order.setOrderModified(now);
+        order.setOrderOpened(now);
+        order.setOrderUpdated(now);
         order.setPause(request.getPause());
+        order.setProcessingCount(0);
         order.setProcessingFrom(request.getProcessingFrom());
         order.setProcessingLimit(request.getProcessingLimit());
         order.setProcessingTo(request.getProcessingTo());
         order.setQueue(request.getQueue());
+        order.setQueueParent(request.getQueueParent());
+        order.setStatus(RecoveryStatusEnum.PROCESSING);
+        order.setVersionId(null);
         return order;
     }
 }

@@ -12,5 +12,9 @@ public enum ProcessingCodeEnum {
     /**
      * Recovery request is successfully processed.
      */
-    OK;
+    OK,
+    /**
+     * Recovery request is new one.
+     */
+    NEW;
 }

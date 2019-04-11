@@ -47,7 +47,8 @@ public class ResumingProcessor implements Processor {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     public void process(Exchange exchange) throws Exception {
-        Date resumingDate = new Date(System.currentTimeMillis() + resumingMin * 60_000);
+        Date resumingDate = new Date(System.currentTimeMillis() - resumingMin * 60_000);
+        log.trace(resumingDate.toString());
         dao.resumeOrders(resumingDate);
     }
 

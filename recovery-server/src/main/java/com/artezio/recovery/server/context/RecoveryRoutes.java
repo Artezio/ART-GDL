@@ -3,6 +3,7 @@
 package com.artezio.recovery.server.context;
 
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.processors.CallbackProcessor;
 import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
@@ -148,7 +149,9 @@ public class RecoveryRoutes extends SpringRouteBuilder {
                 .routeId(SEDA_ID)
                 .setExchangePattern(ExchangePattern.InOnly)
                 .process(restoring).id(RestoringProcessor.class.getSimpleName())
-                .process(callback).id(CallbackProcessor.class.getSimpleName());
+                .choice().when(body().isInstanceOf(RecoveryOrder.class))
+                .process(callback).id(CallbackProcessor.class.getSimpleName())
+                .endChoice();
         // Define resuming and cleaning activities.
         final String CLEANING_URI = CLEANING_URL + "?period=" + cleaningPeriod;
         log.debug(CLEANING_URI);
