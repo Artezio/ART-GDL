@@ -54,8 +54,10 @@ import lombok.Data;
 @SuppressWarnings("PersistenceUnitPresent")
 @XmlRootElement
 @Table(indexes = {
+    @Index(name = "idx_gd_status", unique = false, columnList = "status"),
     @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerUp"),
-    @Index(name = "idx_gd_queue", unique = false, columnList = "queue, queueParent")
+    @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
+    @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
 })
 public class RecoveryOrder implements Serializable {
 
