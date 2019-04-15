@@ -24,7 +24,7 @@ import lombok.Data;
  * <pre>
  * Fields:
  *  id (number) Record identity.
- *  callbackUri (string) Callback URI.
+ *  callbackId (string) Callback route ID.
  *  code (enumeration) Short processing code.
  *  description (string) Processing description.
  *  externalId (string) External message ID.
@@ -66,7 +66,7 @@ public class RecoveryOrder implements Serializable {
     private Long id;
 
     @Column(length = 2000, nullable = false)
-    private String callbackUri;
+    private String callbackId;
     @Column(length = 128, nullable = false)
     private ProcessingCodeEnum code;
     @Column(length = 2000)

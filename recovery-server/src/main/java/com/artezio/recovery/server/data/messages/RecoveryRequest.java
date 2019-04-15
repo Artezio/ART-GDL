@@ -11,7 +11,7 @@ import lombok.Data;
  * Recovery request data structure for DB storing.
  * <pre>
  * Fields:
- *  callbackUri (string) Callback URI.
+ *  callbackId (string) Callback route ID.
  *  externalId (string) External message ID.
  *  locker (string) External code to lock new data storing if it exists.
  *  message (string) Short specific recovery data.
@@ -29,8 +29,7 @@ import lombok.Data;
 @XmlRootElement
 public class RecoveryRequest implements Serializable {
 
-
-    private String callbackUri;
+    private String callbackId;
     private String externalId;
     private String locker;
     private String message;

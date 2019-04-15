@@ -45,7 +45,7 @@ public enum ProcessingCodeEnum {
     /**
      * Recovery processing has not found the callback route.
      */
-    FATAL_NO_CONSUMER,
+    FATAL_CALLBACK_ROUTE_NOT_FOUND,
     /**
      * Recovery processing has found wrong response object.
      */

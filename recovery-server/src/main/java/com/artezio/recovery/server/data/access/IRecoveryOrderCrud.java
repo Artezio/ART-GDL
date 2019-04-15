@@ -98,5 +98,37 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + " GROUP BY o.queue HAVING o.orderCreated = MIN(o.orderCreated)"
             + " ORDER BY o.queue ASC")
     Page<RecoveryOrder> findQueuedOrders(Pageable pageable);
+
+    /**
+     * Find top of processing messages in a queue.
+     * 
+     * @param pageable Data paging settings.
+     * @param queue Code of a queue.
+     * @param created Message creation date.
+     * @return Data page of recovery orders.
+     */
+    @Query("SELECT o FROM RecoveryOrder o WHERE"
+            + " (o.versionId IS NULL)"
+            + " AND (o.queue = :queue)"
+            + " AND (o.orderCreated < :created)"
+            + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
+            + " ORDER BY o.orderCreated ASC")
+    Page<RecoveryOrder> findTopOfQueue(Pageable pageable, 
+            @Param("queue") String queue,
+            @Param("created") Date created);
+    /**
+     * Find processing messages in a parent queue.
+     * 
+     * @param pageable Data paging settings.
+     * @param queueParent Code of a parent queue.
+     * @return Data page of recovery orders.
+     */
+    @Query("SELECT o FROM RecoveryOrder o WHERE"
+            + " (o.versionId IS NULL)"
+            + " AND (o.queueParent = :queueParent)"
+            + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
+            + " ORDER BY o.orderCreated ASC")
+    Page<RecoveryOrder> findParentQueue(Pageable pageable, 
+            @Param("queueParent") String queueParent);
     
 }

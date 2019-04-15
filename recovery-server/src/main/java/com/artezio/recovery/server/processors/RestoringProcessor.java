@@ -77,7 +77,7 @@ public class RestoringProcessor implements Processor {
      */
     private RecoveryOrder lockOrder(Page<RecoveryOrder> page) throws Exception {
         RecoveryOrder order = null;
-        if (!page.isEmpty()) {
+        if (page != null && !page.isEmpty()) {
             order = page.getContent().get(0);
             try {
                 order = dao.findAndLock(order.getId());

@@ -12,8 +12,10 @@ import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.camel.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -37,6 +39,11 @@ public class StoringProcessor implements Processor {
      */
     @Autowired
     private IRecoveryOrderCrud dao;
+    /**
+     * Access to the current Apache Camel context.
+     */
+    @Autowired
+    private CamelContext camel;
 
     /**
      * Recovery request storing process definition.
@@ -77,8 +84,15 @@ public class StoringProcessor implements Processor {
     private RecoveryOrder makeNewOrder(Exchange exchange, RecoveryRequest request)
             throws Exception {
         StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
-        if (request.getCallbackUri() == null) {
-            logMsg.append(": Callback URI is mandatory.");
+        if (request.getCallbackId() == null) {
+            logMsg.append(": Callback route ID is mandatory.");
+            RecoveryException r = new RecoveryException(logMsg.toString());
+            throw r;
+        }
+        Route route = camel.getRoute(request.getCallbackId());
+        if (route == null) {
+            logMsg.append(": Callback route is not found with callbackId = ");
+            logMsg.append(request.getCallbackId());
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }
@@ -90,7 +104,7 @@ public class StoringProcessor implements Processor {
         }
         Date now = new Date(System.currentTimeMillis());
         RecoveryOrder order = new RecoveryOrder();
-        order.setCallbackUri(request.getCallbackUri());
+        order.setCallbackId(request.getCallbackId());
         order.setCode(ProcessingCodeEnum.NEW);
         order.setDescription("Order stored.");
         order.setExternalId(request.getExternalId());
