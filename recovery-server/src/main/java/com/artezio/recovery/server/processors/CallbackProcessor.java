@@ -16,7 +16,6 @@ import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -261,41 +260,49 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private void processOrder(RecoveryOrder order, Exchange exchange) throws Exception {
-        Route route = camel.getRoute(order.getCallbackId());
+        boolean expired = false;
+        switch (order.getCode()) {
+            case EXPIRED_BY_DATE:
+            case EXPIRED_BY_NUMBER:
+                expired = true;
+                break;
+        }
+        Endpoint endpoint = camel.getEndpoint(order.getCallbackUri());
         main:
         {
-            if (route == null) {
-                order.setOrderModified(null);
-                order.setCode(ProcessingCodeEnum.FATAL_CALLBACK_ROUTE_NOT_FOUND);
-                order.setDescription("Recovery callback route is not found.");
+            if (endpoint == null) {
+                order.setCode(ProcessingCodeEnum.FATAL_NO_ENDPOINT_FOUND);
+                order.setDescription("Recovery callback endpoint is not found.");
                 order.setStatus(RecoveryStatusEnum.ERROR);
-                printInfo(order, exchange);
                 break main;
             }
             ProducerTemplate producer = camel.createProducerTemplate();
-            Endpoint endpoint = route.getEndpoint();
             Object obj = producer.requestBody(endpoint, order);
             ClientResponse response;
             if (obj instanceof ClientResponse) {
-                order.setCode(ProcessingCodeEnum.SUCCESS_CLIENT);
                 response = (ClientResponse) obj;
             } else if (obj == null) {
-                order.setCode(ProcessingCodeEnum.SUCCESS_DELIVERY);
                 response = new ClientResponse();
                 response.setResult(ClientResultEnum.SUCCESS);
             } else {
-                order.setOrderModified(null);
                 order.setCode(ProcessingCodeEnum.FATAL_WRONG_RESPONSE);
                 order.setDescription("Recovery callback response has a wrong type: "
                         + obj.getClass().getCanonicalName());
                 order.setStatus(RecoveryStatusEnum.ERROR);
-                printInfo(order, exchange);
                 break main;
             }
-            order.setOrderModified(null);
             order.setDescription(response.getDescription());
+            if (expired) {
+                order.setStatus(RecoveryStatusEnum.ERROR);
+                break main;
+            }
             switch (response.getResult()) {
                 case SUCCESS:
+                    if (obj == null) {
+                        order.setCode(ProcessingCodeEnum.SUCCESS_DELIVERY);
+                    } else {
+                        order.setCode(ProcessingCodeEnum.SUCCESS_CLIENT);
+                    }
                     order.setStatus(RecoveryStatusEnum.SUCCESS);
                     break;
                 case SYSTEM_ERROR:
@@ -315,8 +322,9 @@ public class CallbackProcessor implements Processor {
                     order.setStatus(RecoveryStatusEnum.ERROR);
                     break;
             }
-            printInfo(order, exchange);
         }
+        order.setOrderModified(null);
+        printInfo(order, exchange);
     }
 
     /**
@@ -333,8 +341,19 @@ public class CallbackProcessor implements Processor {
         msg.append("externalId=").append(order.getExternalId()).append(";");
         msg.append("status=").append(order.getStatus()).append(";");
         msg.append("code=").append(order.getCode()).append(";");
+        msg.append("callbackUri=").append(order.getCallbackUri()).append(";");
         msg.append(" ").append(order.getDescription());
-        log.info(msg.toString());
+        switch (order.getStatus()) {
+            case SUCCESS:
+                log.info(msg.toString());
+                break;
+            case PROCESSING:
+                log.debug(msg.toString());
+                break;
+            case ERROR:
+                log.error(msg.toString());
+                break;
+        }
     }
 
 }

@@ -6,7 +6,6 @@ import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import java.util.Date;
 import java.util.UUID;
-import javax.persistence.OptimisticLockException;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -70,7 +69,7 @@ public class RestoringProcessor implements Processor {
 
     /**
      * Lock first recovery order from data page.
-     * 
+     *
      * @param page Data page of recovery orders.
      * @return Locked recovery order.
      * @throws Exception Exception @see Exception
@@ -86,8 +85,10 @@ public class RestoringProcessor implements Processor {
                     order.setVersionId(UUID.randomUUID().toString());
                     dao.save(order);
                 }
-            } catch (OptimisticLockException o) {
-                log.trace(o.getMessage());
+            } catch (Throwable t) {
+                log.trace(t.getClass().getSimpleName() 
+                        + ": " 
+                        + String.valueOf(t.getMessage()));
                 order = null;
             }
         }

@@ -47,7 +47,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
     @Modifying
     @Query("UPDATE RecoveryOrder o SET o.versionId = NULL WHERE (o.versionId IS NOT NULL) AND (o.orderOpened < :resumingDate)")
     int resumeOrders(@Param("resumingDate") Date resumingDate);
-
+    
     /**
      * Select with locking an recovery order for update.
      * 
