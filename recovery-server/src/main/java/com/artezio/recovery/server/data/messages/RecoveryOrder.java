@@ -2,6 +2,7 @@
  */
 package com.artezio.recovery.server.data.messages;
 
+import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.io.Serializable;
@@ -28,6 +29,7 @@ import lombok.Data;
  *  code (enumeration) Short processing code.
  *  description (string) Processing description.
  *  externalId (string) External message ID.
+ *  holdingCode (enumeration) Preprocessing hold code.
  *  locker (string) External code to lock new data storing if it exists.
  *  lockerUp (boolean) Flag to indicate if locker is actual.
  *  message (string) Short specific recovery data.
@@ -73,6 +75,8 @@ public class RecoveryOrder implements Serializable {
     private String description;
     @Column(length = 128)
     private String externalId;
+    @Column(length = 128, nullable = false)
+    private HoldingCodeEnum holdingCode;
     @Column(length = 128, nullable = false)
     private String locker;
     @Column(nullable = false)

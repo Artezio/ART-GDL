@@ -6,12 +6,14 @@ import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
+import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -68,6 +70,10 @@ public class CallbackProcessor implements Processor {
             boolean success;
             main:
             try {
+                success = checkDateInterval(order, exchange);
+                if (!success) {
+                    break main;
+                }
                 success = checkPause(order);
                 if (!success) {
                     break main;
@@ -77,10 +83,6 @@ public class CallbackProcessor implements Processor {
                     break main;
                 }
                 success = checkQueue(order);
-                if (!success) {
-                    break main;
-                }
-                success = checkDateInterval(order, exchange);
                 if (!success) {
                     break main;
                 }
@@ -96,7 +98,7 @@ public class CallbackProcessor implements Processor {
                 }
                 order.setOrderUpdated(now);
                 order.setVersionId(null);
-                dao.save(order);
+                //dao.save(order);
             }
         }
     }
@@ -135,6 +137,7 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private boolean checkCountLimit(RecoveryOrder order, Exchange exchange) throws Exception {
+        order.setHoldingCode(HoldingCodeEnum.NO_HOLDING);
         boolean success = false;
         Integer count = order.getProcessingCount();
         order.setProcessingCount(++count);
@@ -164,11 +167,14 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private boolean checkDateInterval(RecoveryOrder order, Exchange exchange) throws Exception {
+        order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_DATE);
         boolean success = false;
         Date now = new Date(System.currentTimeMillis());
         Date from = order.getProcessingFrom();
         Date to = order.getProcessingTo();
-        if (to != null && now.after(to)) {
+        if (from == null && to == null) {
+            success = true;
+        } else if (to != null && now.after(to)) {
             order.setOrderModified(null);
             order.setCode(ProcessingCodeEnum.EXPIRED_BY_DATE);
             order.setDescription("Order is expired by date interval.");
@@ -197,6 +203,7 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private boolean checkPause(RecoveryOrder order) throws Exception {
+        order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PAUSE);
         boolean success = false;
         String pauseRule = order.getPause();
         if (pauseRule != null) {
@@ -223,6 +230,7 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private boolean checkQueue(RecoveryOrder order) throws Exception {
+        order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_QUEUE);
         boolean success = false;
         Page<RecoveryOrder> page = dao.findTopOfQueue(
                 PageRequest.of(0, 1),
@@ -242,6 +250,7 @@ public class CallbackProcessor implements Processor {
      * @throws Exception @see Exception
      */
     private boolean checkParentQueue(RecoveryOrder order) throws Exception {
+        order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PARENT_QUEUE);
         boolean success = false;
         Page<RecoveryOrder> page = dao.findParentQueue(
                 PageRequest.of(0, 1),
@@ -259,6 +268,7 @@ public class CallbackProcessor implements Processor {
      * @param exchange Apache Camel ESB exchange message.
      * @throws Exception @see Exception
      */
+    @SuppressWarnings("ThrowableResultIgnored")
     private void processOrder(RecoveryOrder order, Exchange exchange) throws Exception {
         boolean expired = false;
         switch (order.getCode()) {
@@ -267,7 +277,7 @@ public class CallbackProcessor implements Processor {
                 expired = true;
                 break;
         }
-        Endpoint endpoint = camel.getEndpoint(order.getCallbackUri());
+        Endpoint endpoint = camel.hasEndpoint(order.getCallbackUri());
         main:
         {
             if (endpoint == null) {
@@ -277,17 +287,32 @@ public class CallbackProcessor implements Processor {
                 break main;
             }
             ProducerTemplate producer = camel.createProducerTemplate();
-            Object obj = producer.requestBody(endpoint, order);
             ClientResponse response;
-            if (obj instanceof ClientResponse) {
-                response = (ClientResponse) obj;
-            } else if (obj == null) {
+            Object responseBody;
+            try {
+                responseBody = producer.requestBody(endpoint, order);
+            } catch (CamelExecutionException e) {
+                StringBuilder executionError = new StringBuilder();
+                executionError.append(e.getCause() != null
+                        ? e.getCause().getClass().getSimpleName()
+                        : e.getClass().getSimpleName());
+                executionError.append(": ");
+                executionError.append(e.getCause() != null
+                        ? e.getCause().getMessage()
+                        : e.getMessage());
+                order.setDescription(executionError.toString());
+                order.setCode(ProcessingCodeEnum.ERROR_DELIVERY);
+                break main;
+            }
+            if (responseBody instanceof ClientResponse) {
+                response = (ClientResponse) responseBody;
+            } else if (responseBody == null || responseBody instanceof RecoveryOrder) {
                 response = new ClientResponse();
                 response.setResult(ClientResultEnum.SUCCESS);
             } else {
                 order.setCode(ProcessingCodeEnum.FATAL_WRONG_RESPONSE);
                 order.setDescription("Recovery callback response has a wrong type: "
-                        + obj.getClass().getCanonicalName());
+                        + responseBody.getClass().getCanonicalName());
                 order.setStatus(RecoveryStatusEnum.ERROR);
                 break main;
             }
@@ -298,20 +323,18 @@ public class CallbackProcessor implements Processor {
             }
             switch (response.getResult()) {
                 case SUCCESS:
-                    if (obj == null) {
-                        order.setCode(ProcessingCodeEnum.SUCCESS_DELIVERY);
-                    } else {
+                    if (responseBody instanceof ClientResponse) {
                         order.setCode(ProcessingCodeEnum.SUCCESS_CLIENT);
+                    } else {
+                        order.setCode(ProcessingCodeEnum.SUCCESS_DELIVERY);
                     }
                     order.setStatus(RecoveryStatusEnum.SUCCESS);
                     break;
                 case SYSTEM_ERROR:
                     order.setCode(ProcessingCodeEnum.ERROR_CLIENT);
-                    order.setStatus(RecoveryStatusEnum.PROCESSING);
                     break;
                 case BUSINESS_ERROR:
                     order.setCode(ProcessingCodeEnum.ERROR_BUSINESS);
-                    order.setStatus(RecoveryStatusEnum.PROCESSING);
                     break;
                 case SYSTEM_FATAL_ERROR:
                     order.setCode(ProcessingCodeEnum.FATAL_CLIENT);
@@ -336,13 +359,13 @@ public class CallbackProcessor implements Processor {
      */
     private void printInfo(RecoveryOrder order, Exchange exchange) throws Exception {
         StringBuilder msg = new StringBuilder();
-        msg.append("exchangeId=").append(exchange.getExchangeId()).append(";");
-        msg.append("recoveryId=").append(order.getId()).append(";");
-        msg.append("externalId=").append(order.getExternalId()).append(";");
-        msg.append("status=").append(order.getStatus()).append(";");
-        msg.append("code=").append(order.getCode()).append(";");
-        msg.append("callbackUri=").append(order.getCallbackUri()).append(";");
-        msg.append(" ").append(order.getDescription());
+        msg.append("recoveryId=").append(order.getId()).append("; ");
+        msg.append("externalId=").append(order.getExternalId()).append("; ");
+        msg.append("status=").append(order.getStatus()).append("; ");
+        msg.append("code=").append(order.getCode()).append("; ");
+        msg.append("callbackUri=").append(order.getCallbackUri()).append("; ");
+        msg.append("exchangeId=").append(exchange.getExchangeId()).append("; ");
+        msg.append(order.getDescription());
         switch (order.getStatus()) {
             case SUCCESS:
                 log.info(msg.toString());

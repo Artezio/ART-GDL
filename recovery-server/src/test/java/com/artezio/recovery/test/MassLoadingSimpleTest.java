@@ -5,10 +5,10 @@ package com.artezio.recovery.test;
 import com.artezio.recovery.server.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
+import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -22,7 +22,8 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
- *
+ * Mass loading test for simple recovery requests.
+ * 
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @RunWith(CamelSpringBootRunner.class)
@@ -31,12 +32,13 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @Slf4j
 public class MassLoadingSimpleTest {
 
-    private static final String CALLBACK_URI = "direct://callback";
-    private static final String MOCK_RESULT_URI = "mock:direct:callback";
-    private static final int TEST_TIMEOUT = 60_000;
-    private static final int TEST_LOAD_NUMBER = 2_000;
-
-    @Autowired
+    private static final String MOCK_RESULT_URI = "mock:callback";
+    private static final int PRODUCER_TIMEOUT = 5_000;
+    private static final int ENDPOINT_TIMEOUT = 10_000;
+    private static final int TEST_TIMEOUT = 300_000;
+    private static final int TEST_LOAD_NUMBER = 1;
+    
+    @Produce(uri = RecoveryRoutes.INCOME_URL)
     private ProducerTemplate producer;
 
     @Autowired
@@ -46,22 +48,23 @@ public class MassLoadingSimpleTest {
     private MockEndpoint callback;
 
     @Test(timeout = TEST_TIMEOUT)
-    public void massLoad() throws InterruptedException {
-        callback.whenAnyExchangeReceived((Exchange exchange) -> {
-            log.info(exchange.getExchangeId());
-            Thread.sleep(5_000);
-        });
+    public void massLoad() throws Exception {
         callback.expectedMessageCount(TEST_LOAD_NUMBER);
+        callback.whenAnyExchangeReceived((Exchange exchange) -> {
+                    log.info(Thread.currentThread().getName());
+                    // Long term process emulation.
+                    Thread.sleep(PRODUCER_TIMEOUT);
+        });
         for (int i = 0; i < TEST_LOAD_NUMBER; i++) {
             RecoveryRequest req = new RecoveryRequest();
-            req.setCallbackUri(CALLBACK_URI);
+            req.setCallbackUri(MOCK_RESULT_URI);
             DefaultTransactionDefinition def = new DefaultTransactionDefinition();
             def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
             TransactionStatus status = transactionManager.getTransaction(def);
-            producer.requestBody(RecoveryRoutes.INCOME_URL, req);
+            producer.sendBody(req);
             transactionManager.commit(status);
         }
-        callback.await(TEST_TIMEOUT / 2, TimeUnit.MILLISECONDS);
+        Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
     }
 

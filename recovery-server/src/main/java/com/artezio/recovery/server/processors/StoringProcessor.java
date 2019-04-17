@@ -5,6 +5,7 @@ package com.artezio.recovery.server.processors;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryException;
@@ -89,7 +90,7 @@ public class StoringProcessor implements Processor {
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }
-        Endpoint endpoint = camel.getEndpoint(request.getCallbackUri());
+        Endpoint endpoint = camel.hasEndpoint(request.getCallbackUri());
         if (endpoint == null) {
             logMsg.append(": Callback endpoint is not found with callbackId = ");
             logMsg.append(request.getCallbackUri());
@@ -108,6 +109,7 @@ public class StoringProcessor implements Processor {
         order.setCode(ProcessingCodeEnum.NEW);
         order.setDescription("Order stored.");
         order.setExternalId(request.getExternalId());
+        order.setHoldingCode(HoldingCodeEnum.NO_HOLDING);
         order.setLocker(request.getLocker() == null
                 ? UUID.randomUUID().toString()
                 : request.getLocker());

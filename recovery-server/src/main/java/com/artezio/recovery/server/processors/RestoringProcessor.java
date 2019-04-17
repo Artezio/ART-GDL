@@ -78,19 +78,19 @@ public class RestoringProcessor implements Processor {
         RecoveryOrder order = null;
         if (page != null && !page.isEmpty()) {
             order = page.getContent().get(0);
-            try {
-                order = dao.findAndLock(order.getId());
-                if (order != null) {
-                    order.setOrderOpened(new Date(System.currentTimeMillis()));
-                    order.setVersionId(UUID.randomUUID().toString());
-                    dao.save(order);
-                }
-            } catch (Throwable t) {
-                log.trace(t.getClass().getSimpleName() 
-                        + ": " 
-                        + String.valueOf(t.getMessage()));
-                order = null;
-            }
+//            try {
+//                order = dao.findAndLock(order.getId());
+//                if (order != null) {
+//                    order.setOrderOpened(new Date(System.currentTimeMillis()));
+//                    order.setVersionId(UUID.randomUUID().toString());
+//                    dao.save(order);
+//                }
+//            } catch (Throwable t) {
+//                log.trace(t.getClass().getSimpleName() 
+//                        + ": " 
+//                        + String.valueOf(t.getMessage()));
+//                order = null;
+//            }
         }
         return order;
     }
