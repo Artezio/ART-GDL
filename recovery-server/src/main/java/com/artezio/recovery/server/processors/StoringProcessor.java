@@ -14,7 +14,6 @@ import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
-import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,13 +86,6 @@ public class StoringProcessor implements Processor {
         StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
         if (request.getCallbackUri() == null) {
             logMsg.append(": Callback route URI is mandatory.");
-            RecoveryException r = new RecoveryException(logMsg.toString());
-            throw r;
-        }
-        Endpoint endpoint = camel.hasEndpoint(request.getCallbackUri());
-        if (endpoint == null) {
-            logMsg.append(": Callback endpoint is not found with callbackId = ");
-            logMsg.append(request.getCallbackUri());
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }

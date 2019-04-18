@@ -15,7 +15,6 @@ import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
-import org.apache.camel.Endpoint;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
@@ -239,13 +238,17 @@ public class CallbackProcessor implements Processor {
      */
     private boolean checkQueue(RecoveryOrder order) throws Exception {
         order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_QUEUE);
-        boolean success = false;
-        Page<RecoveryOrder> page = dao.findTopOfQueue(
-                PageRequest.of(0, 1),
-                order.getQueue(),
-                order.getOrderCreated());
-        if (page == null || page.isEmpty()) {
-            success = true;
+        boolean success = true;
+        if (order.getQueue() != null) {
+            Page<RecoveryOrder> page = dao.findTopOfQueue(
+                    PageRequest.of(0, 1),
+                    order.getQueue(),
+                    order.getOrderCreated());
+            if (page == null || page.isEmpty()) {
+                success = true;
+            } else {
+                success = false;
+            }
         }
         return success;
     }
@@ -259,12 +262,16 @@ public class CallbackProcessor implements Processor {
      */
     private boolean checkParentQueue(RecoveryOrder order) throws Exception {
         order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PARENT_QUEUE);
-        boolean success = false;
-        Page<RecoveryOrder> page = dao.findParentQueue(
-                PageRequest.of(0, 1),
-                order.getQueueParent());
-        if (page == null || page.isEmpty()) {
-            success = true;
+        boolean success = true;
+        if (order.getQueueParent() != null) {
+            Page<RecoveryOrder> page = dao.findParentQueue(
+                    PageRequest.of(0, 1),
+                    order.getQueueParent());
+            if (page == null || page.isEmpty()) {
+                success = true;
+            } else {
+                success = false;
+            }
         }
         return success;
     }
@@ -285,20 +292,13 @@ public class CallbackProcessor implements Processor {
                 expired = true;
                 break;
         }
-        Endpoint endpoint = camel.hasEndpoint(order.getCallbackUri());
         main:
         {
-            if (endpoint == null) {
-                order.setCode(ProcessingCodeEnum.FATAL_NO_ENDPOINT_FOUND);
-                order.setDescription("Recovery callback endpoint is not found.");
-                order.setStatus(RecoveryStatusEnum.ERROR);
-                break main;
-            }
             ProducerTemplate producer = camel.createProducerTemplate();
             ClientResponse response;
             Object responseBody;
             try {
-                responseBody = producer.requestBody(endpoint, order);
+                responseBody = producer.requestBody(order.getCallbackUri(), order);
             } catch (CamelExecutionException e) {
                 StringBuilder executionError = new StringBuilder();
                 executionError.append(e.getCause() != null
