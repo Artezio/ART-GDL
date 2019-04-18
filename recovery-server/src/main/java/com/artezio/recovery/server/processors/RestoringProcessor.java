@@ -48,12 +48,12 @@ public class RestoringProcessor implements Processor {
         Page<RecoveryOrder> page;
         search:
         {
-            page = dao.findNewOrders(PageRequest.of(0, 1));
+            page = dao.findNewOrders(PageRequest.of(0, 1), new Date());
             order = lockOrder(page);
             if (order != null) {
                 break search;
             }
-            page = dao.findProcessingOrders(PageRequest.of(0, 1));
+            page = dao.findProcessingOrders(PageRequest.of(0, 1), new Date());
             order = lockOrder(page);
             if (order != null) {
                 break search;
@@ -82,7 +82,10 @@ public class RestoringProcessor implements Processor {
             order.setVersionId(UUID.randomUUID().toString());
             int updated = 0;
             try {
-                updated = dao.updateVersion(order.getId(), order.getVersionId());
+                updated = dao.updateVersion(
+                        order.getId(),
+                        order.getVersionId(),
+                        new Date());
             } catch (Throwable t) {
                 log.trace(t.getClass().getSimpleName() 
                         + ": "

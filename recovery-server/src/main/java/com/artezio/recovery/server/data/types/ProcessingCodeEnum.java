@@ -23,6 +23,10 @@ public enum ProcessingCodeEnum {
      */
     NEW,
     /**
+     * Recovery order is reviewed by the callback execution processor.
+     */
+    REVIEWED,
+    /**
      * Recovery order is expired by number of tries.
      */
     EXPIRED_BY_NUMBER,
@@ -42,10 +46,6 @@ public enum ProcessingCodeEnum {
      * Recovery client has returned a business error.
      */
     ERROR_BUSINESS,
-    /**
-     * Recovery processing has not found the callback endpoint.
-     */
-    FATAL_NO_ENDPOINT_FOUND,
     /**
      * Recovery processing has found wrong response object.
      */

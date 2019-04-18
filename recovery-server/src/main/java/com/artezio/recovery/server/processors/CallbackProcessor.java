@@ -68,6 +68,7 @@ public class CallbackProcessor implements Processor {
         RecoveryOrder order = retriveOrder(exchange);
         if (order != null) {
             boolean success;
+            order.setCode(ProcessingCodeEnum.REVIEWED);
             main:
             try {
                 success = checkDateInterval(order, exchange);
@@ -157,7 +158,7 @@ public class CallbackProcessor implements Processor {
                 success = true;
             } else {
                 order.setStatus(RecoveryStatusEnum.ERROR);
-                printInfo(order, exchange);
+                printInfo(order);
             }
         } else {
             success = true;
@@ -190,7 +191,7 @@ public class CallbackProcessor implements Processor {
             } else {
                 success = false;
                 order.setStatus(RecoveryStatusEnum.ERROR);
-                printInfo(order, exchange);
+                printInfo(order);
             }
         } else if (from != null && now.before(from)) {
             success = false;
@@ -244,11 +245,7 @@ public class CallbackProcessor implements Processor {
                     PageRequest.of(0, 1),
                     order.getQueue(),
                     order.getOrderCreated());
-            if (page == null || page.isEmpty()) {
-                success = true;
-            } else {
-                success = false;
-            }
+            success = (page == null || page.isEmpty());
         }
         return success;
     }
@@ -267,11 +264,7 @@ public class CallbackProcessor implements Processor {
             Page<RecoveryOrder> page = dao.findParentQueue(
                     PageRequest.of(0, 1),
                     order.getQueueParent());
-            if (page == null || page.isEmpty()) {
-                success = true;
-            } else {
-                success = false;
-            }
+            success = (page == null || page.isEmpty());
         }
         return success;
     }
@@ -355,24 +348,24 @@ public class CallbackProcessor implements Processor {
             }
         }
         order.setOrderModified(null);
-        printInfo(order, exchange);
+        printInfo(order);
     }
 
     /**
      * Print information message to the LOG.
      *
      * @param order Recovery order data record.
-     * @param exchange Apache Camel ESB exchange message.
      * @throws Exception @see Exception
      */
-    private void printInfo(RecoveryOrder order, Exchange exchange) throws Exception {
+    private void printInfo(RecoveryOrder order) throws Exception {
         StringBuilder msg = new StringBuilder();
         msg.append("recoveryId=").append(order.getId()).append("; ");
         msg.append("externalId=").append(order.getExternalId()).append("; ");
         msg.append("status=").append(order.getStatus()).append("; ");
         msg.append("code=").append(order.getCode()).append("; ");
+        msg.append("queue=").append(order.getQueue()).append("; ");
+        msg.append("queueParent=").append(order.getQueueParent()).append("; ");
         msg.append("callbackUri=").append(order.getCallbackUri()).append("; ");
-        msg.append("exchangeId=").append(exchange.getExchangeId()).append("; ");
         msg.append(order.getDescription());
         switch (order.getStatus()) {
             case SUCCESS:

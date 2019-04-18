@@ -88,10 +88,10 @@ public class MassLoadingSimpleTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-
+    
     /**
      * Mass loading test for simple recovery requests definition.
-     * 
+     *
      * @throws Exception @see Exception
      */
     @Test(timeout = TEST_TIMEOUT)

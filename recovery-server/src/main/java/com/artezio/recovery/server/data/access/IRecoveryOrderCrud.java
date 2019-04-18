@@ -51,13 +51,18 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      *
      * @param orderId Recovery order ID.
      * @param versionId Processing version ID.
+     * @param openDate Processing access date.
      * @return Number updated orders.
      */
     @Modifying
-    @Query("UPDATE RecoveryOrder o SET o.versionId = :versionId WHERE o.id = :orderId")
+    @Query("UPDATE RecoveryOrder o SET"
+            + " o.versionId = :versionId,"
+            + " o.orderOpened = :openDate "
+            + "WHERE o.id = :orderId")
     int updateVersion(
             @Param("orderId") Long orderId,
-            @Param("versionId") String versionId);
+            @Param("versionId") String versionId,
+            @Param("openDate") Date openDate);
 
     /**
      * Select an order by specific processing version.
@@ -72,28 +77,36 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      * Find recovery orders which are not processed.
      *
      * @param pageable Data paging settings.
+     * @param processingDate Current processing date.
      * @return Data page of recovery orders.
      */
     @Query("SELECT o FROM RecoveryOrder o WHERE"
             + " (o.versionId IS NULL)"
             + " AND (o.queue IS NULL)"
+            + " AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate))"
             + " AND (o.code = com.artezio.recovery.server.data.types.ProcessingCodeEnum.NEW)"
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
-    Page<RecoveryOrder> findNewOrders(Pageable pageable);
+    Page<RecoveryOrder> findNewOrders(
+            Pageable pageable, 
+            @Param("processingDate") Date processingDate);
 
     /**
      * Find processing recovery orders which are not queued.
      *
      * @param pageable Data paging settings.
+     * @param processingDate Current processing date.
      * @return Data page of recovery orders.
      */
     @Query("SELECT o FROM RecoveryOrder o WHERE"
             + " (o.versionId IS NULL)"
             + " AND (o.queue IS NULL)"
+            + " AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate))"
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderOpened ASC")
-    Page<RecoveryOrder> findProcessingOrders(Pageable pageable);
+    Page<RecoveryOrder> findProcessingOrders(
+            Pageable pageable, 
+            @Param("processingDate") Date processingDate);
 
     /**
      * Find processing recovery orders which are queued.
@@ -101,11 +114,11 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      * @param pageable Data paging settings.
      * @return Data page of recovery orders.
      */
-    @Query("SELECT o FROM RecoveryOrder o WHERE "
-            + "o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING "
+    @Query("SELECT o FROM RecoveryOrder o WHERE"
+            + " o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING "
             + "GROUP BY o.queue, o.versionId "
             + "HAVING (o.orderCreated = MIN(o.orderCreated)) AND (COUNT(o.versionId) = 0) "
-            + "ORDER BY o.queue ASC")
+            + "ORDER BY o.orderOpened ASC")
     Page<RecoveryOrder> findQueuedOrders(Pageable pageable);
 
     /**
@@ -117,8 +130,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      * @return Data page of recovery orders.
      */
     @Query("SELECT o FROM RecoveryOrder o WHERE"
-            + " (o.versionId IS NULL)"
-            + " AND (o.queue = :queue)"
+            + " (o.queue = :queue)"
             + " AND (o.orderCreated < :created)"
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
@@ -134,8 +146,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      * @return Data page of recovery orders.
      */
     @Query("SELECT o FROM RecoveryOrder o WHERE"
-            + " (o.versionId IS NULL)"
-            + " AND (o.queueParent = :queueParent)"
+            + " (o.queueParent = :queueParent)"
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
     Page<RecoveryOrder> findParentQueue(Pageable pageable,
