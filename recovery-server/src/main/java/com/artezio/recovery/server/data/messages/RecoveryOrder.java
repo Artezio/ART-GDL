@@ -16,7 +16,6 @@ import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
-import javax.persistence.Version;
 import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 
@@ -31,7 +30,7 @@ import lombok.Data;
  *  externalId (string) External message ID.
  *  holdingCode (enumeration) Preprocessing hold code.
  *  locker (string) External code to lock new data storing if it exists.
- *  lockerUp (boolean) Flag to indicate if locker is actual.
+ *  lockerVersion (string) Code to make with locker qnique index.
  *  message (string) Short specific recovery data.
  *  orderCreated (date) Record creation date.
  *  orderModified (date) Processing status modification date.
@@ -45,7 +44,6 @@ import lombok.Data;
  *  queue (string) Code to specify redelivery queue.
  *  queueParent (string) Code to specify parent redelivery queue.
  *  status (enumeration) Recovery request processing status.
- *  versionCount (number) Data access session number.
  *  versionId (string) Data access session code.
  * </pre>
  *
@@ -57,7 +55,8 @@ import lombok.Data;
 @XmlRootElement
 @Table(indexes = {
     @Index(name = "idx_gd_status", unique = false, columnList = "status"),
-    @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerUp"),
+    @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
+    @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerVersion"),
     @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
     @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
 })
@@ -79,8 +78,8 @@ public class RecoveryOrder implements Serializable {
     private HoldingCodeEnum holdingCode;
     @Column(length = 128, nullable = false)
     private String locker;
-    @Column(nullable = false)
-    private Boolean lockerUp;
+    @Column(length = 128, nullable = false)
+    private String lockerVersion;
     @Column(length = 2000)
     private String message;
     @Column(nullable = false)
@@ -113,8 +112,6 @@ public class RecoveryOrder implements Serializable {
     private String queueParent;
     @Column(length = 128, nullable = false)
     private RecoveryStatusEnum status;
-    @Version
-    private Long versionCount;
     @Column(length = 128)
     private String versionId;    
 

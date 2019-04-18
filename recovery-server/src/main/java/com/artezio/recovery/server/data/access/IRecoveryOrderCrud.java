@@ -4,10 +4,8 @@ package com.artezio.recovery.server.data.access;
 
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import java.util.Date;
-import javax.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -49,14 +47,13 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
     int resumeOrders(@Param("resumingDate") Date resumingDate);
     
     /**
-     * Select with locking an recovery order for update.
+     * Select an order by specific processing version.
      * 
-     * @param id Recovery order ID.
+     * @param versionId Processing version ID.
      * @return Locked recovery order.
      */
-    @Lock(LockModeType.OPTIMISTIC_FORCE_INCREMENT)
-    @Query("SELECT o FROM RecoveryOrder o WHERE o.id = :orderId")
-    RecoveryOrder findAndLock(@Param("orderId") Long id);
+    @Query("SELECT o FROM RecoveryOrder o WHERE o.versionId = :versionId")
+    RecoveryOrder findOrderByVersionId(@Param("versionId") String versionId);
     
     /**
      * Find recovery orders which are not processed.

@@ -5,6 +5,7 @@ package com.artezio.recovery.server.processors;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import java.util.Date;
+import java.util.Random;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
@@ -46,53 +47,26 @@ public class RestoringProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         RecoveryOrder order;
         Page<RecoveryOrder> page;
-        search:
-        {
-            page = dao.findNewOrders(PageRequest.of(0, 1));
-            order = lockOrder(page);
-            if (order != null) {
-                break search;
-            }
-            page = dao.findProcessingOrders(PageRequest.of(0, 1));
-            order = lockOrder(page);
-            if (order != null) {
-                break search;
-            }
-            page = dao.findQueuedOrders(PageRequest.of(0, 1));
-            order = lockOrder(page);
-            if (order != null) {
-                break search;
-            }
+        int random = new Random().nextInt(3);
+        switch (random) {
+            case 1:
+                page = dao.findNewOrders(PageRequest.of(0, 1));
+                break;
+            case 2:
+                page = dao.findProcessingOrders(PageRequest.of(0, 1));
+                break;
+            case 3:
+            default:
+                page = dao.findQueuedOrders(PageRequest.of(0, 1));
+                break;
         }
-        exchange.getIn().setBody(order);
-    }
-
-    /**
-     * Lock first recovery order from data page.
-     *
-     * @param page Data page of recovery orders.
-     * @return Locked recovery order.
-     * @throws Exception Exception @see Exception
-     */
-    private RecoveryOrder lockOrder(Page<RecoveryOrder> page) throws Exception {
-        RecoveryOrder order = null;
         if (page != null && !page.isEmpty()) {
             order = page.getContent().get(0);
-//            try {
-//                order = dao.findAndLock(order.getId());
-//                if (order != null) {
-//                    order.setOrderOpened(new Date(System.currentTimeMillis()));
-//                    order.setVersionId(UUID.randomUUID().toString());
-//                    dao.save(order);
-//                }
-//            } catch (Throwable t) {
-//                log.trace(t.getClass().getSimpleName() 
-//                        + ": " 
-//                        + String.valueOf(t.getMessage()));
-//                order = null;
-//            }
+            order.setOrderOpened(new Date(System.currentTimeMillis()));
+            order.setVersionId(UUID.randomUUID().toString());
+            dao.save(order);
+            exchange.getIn().setBody(order);
         }
-        return order;
     }
 
 }

@@ -11,6 +11,7 @@ import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -92,13 +93,19 @@ public class CallbackProcessor implements Processor {
                 }
                 processOrder(order, exchange);
             } finally {
+                switch (order.getStatus()) {
+                    case SUCCESS:
+                    case ERROR:
+                        order.setLockerVersion(UUID.randomUUID().toString());
+                        break;
+                }
                 Date now = new Date(System.currentTimeMillis());
                 if (order.getOrderModified() == null) {
                     order.setOrderModified(now);
                 }
                 order.setOrderUpdated(now);
                 order.setVersionId(null);
-                //dao.save(order);
+                dao.save(order);
             }
         }
     }
@@ -115,6 +122,7 @@ public class CallbackProcessor implements Processor {
         Object body = exchange.getIn().getBody();
         if (body instanceof RecoveryOrder) {
             order = (RecoveryOrder) body;
+            order = dao.findOrderByVersionId(order.getVersionId());
         } else {
             StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
             if (body == null) {

@@ -34,9 +34,9 @@ public class MassLoadingSimpleTest {
 
     private static final String MOCK_RESULT_URI = "mock:callback";
     private static final int PRODUCER_TIMEOUT = 5_000;
-    private static final int ENDPOINT_TIMEOUT = 10_000;
+    private static final int ENDPOINT_TIMEOUT = 60_000;
     private static final int TEST_TIMEOUT = 300_000;
-    private static final int TEST_LOAD_NUMBER = 1;
+    private static final int TEST_LOAD_NUMBER = 1000;
     
     @Produce(uri = RecoveryRoutes.INCOME_URL)
     private ProducerTemplate producer;
@@ -51,7 +51,9 @@ public class MassLoadingSimpleTest {
     public void massLoad() throws Exception {
         callback.expectedMessageCount(TEST_LOAD_NUMBER);
         callback.whenAnyExchangeReceived((Exchange exchange) -> {
-                    log.info(Thread.currentThread().getName());
+                    log.info(exchange.getExchangeId() 
+                            + ": "
+                            + Thread.currentThread().getName());
                     // Long term process emulation.
                     Thread.sleep(PRODUCER_TIMEOUT);
         });

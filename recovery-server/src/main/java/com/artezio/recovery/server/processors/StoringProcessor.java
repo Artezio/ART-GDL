@@ -113,7 +113,7 @@ public class StoringProcessor implements Processor {
         order.setLocker(request.getLocker() == null
                 ? UUID.randomUUID().toString()
                 : request.getLocker());
-        order.setLockerUp(Boolean.TRUE);
+        order.setLockerVersion(new UUID(0, 0).toString());
         order.setMessage(request.getMessage());
         order.setOrderCreated(now);
         order.setOrderModified(now);
