@@ -9,6 +9,8 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -69,12 +71,14 @@ public class RecoveryOrder implements Serializable {
     @Column(length = 2000, nullable = false)
     private String callbackUri;
     @Column(length = 128, nullable = false)
+    @Enumerated(EnumType.STRING)
     private ProcessingCodeEnum code;
     @Column(length = 2000)
     private String description;
     @Column(length = 128)
     private String externalId;
     @Column(length = 128, nullable = false)
+    @Enumerated(EnumType.STRING)
     private HoldingCodeEnum holdingCode;
     @Column(length = 128, nullable = false)
     private String locker;
@@ -111,6 +115,7 @@ public class RecoveryOrder implements Serializable {
     @Column(length = 128)
     private String queueParent;
     @Column(length = 128, nullable = false)
+    @Enumerated(EnumType.STRING)
     private RecoveryStatusEnum status;
     @Column(length = 128)
     private String versionId;    
