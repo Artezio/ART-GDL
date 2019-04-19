@@ -58,7 +58,7 @@ public class RestoringProcessor implements Processor {
             if (order != null) {
                 break search;
             }
-            page = dao.findQueuedOrders(PageRequest.of(0, 1));
+            page = dao.findQueuedOrders(PageRequest.of(0, 1), new Date());
             order = lockOrder(page);
             if (order != null) {
                 break search;

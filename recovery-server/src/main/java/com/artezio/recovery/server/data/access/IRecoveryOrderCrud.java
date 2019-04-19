@@ -112,14 +112,20 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
      * Find processing recovery orders which are queued.
      *
      * @param pageable Data paging settings.
+     * @param processingDate Current processing date.
      * @return Data page of recovery orders.
      */
-    @Query("SELECT o FROM RecoveryOrder o WHERE"
-            + " o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING "
-            + "GROUP BY o.queue, o.versionId "
-            + "HAVING (o.orderCreated = MIN(o.orderCreated)) AND (COUNT(o.versionId) = 0) "
+    @Query("SELECT o FROM RecoveryOrder o "
+            + "WHERE (o.id IN ("
+            + " SELECT MIN(q.id) FROM RecoveryOrder q"
+            + " WHERE q.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING"
+            + " GROUP BY o.queue)) "
+            + "AND (o.versionId IS NULL) "
+            + "AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate)) "
             + "ORDER BY o.orderOpened ASC")
-    Page<RecoveryOrder> findQueuedOrders(Pageable pageable);
+    Page<RecoveryOrder> findQueuedOrders(
+            Pageable pageable, 
+            @Param("processingDate") Date processingDate);
 
     /**
      * Find top of processing messages in a queue.
