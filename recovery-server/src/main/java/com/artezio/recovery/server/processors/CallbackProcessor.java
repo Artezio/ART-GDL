@@ -79,10 +79,6 @@ public class CallbackProcessor implements Processor {
                 if (!success) {
                     break main;
                 }
-                success = checkParentQueue(order);
-                if (!success) {
-                    break main;
-                }
                 success = checkQueue(order);
                 if (!success) {
                     break main;
@@ -240,31 +236,24 @@ public class CallbackProcessor implements Processor {
     private boolean checkQueue(RecoveryOrder order) throws Exception {
         order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_QUEUE);
         boolean success = true;
-        if (order.getQueue() != null) {
+        if (order.getQueue() != null || order.getQueueParent() != null) {
             Page<RecoveryOrder> page = dao.findTopOfQueue(
                     PageRequest.of(0, 1),
                     order.getQueue(),
+                    order.getQueueParent(),
                     order.getOrderCreated());
-            success = (page == null || page.isEmpty());
-        }
-        return success;
-    }
-
-    /**
-     * Check processing by parent queue sequence.
-     *
-     * @param order Recovery order data record.
-     * @return False if processing should be interrupted.
-     * @throws Exception @see Exception
-     */
-    private boolean checkParentQueue(RecoveryOrder order) throws Exception {
-        order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PARENT_QUEUE);
-        boolean success = true;
-        if (order.getQueueParent() != null) {
-            Page<RecoveryOrder> page = dao.findParentQueue(
-                    PageRequest.of(0, 1),
-                    order.getQueueParent());
-            success = (page == null || page.isEmpty());
+            if (page == null || page.isEmpty()) {
+                success = true;
+            } else {
+                success = false;
+                RecoveryOrder top = page.getContent().get(0);
+                if (order.getQueue() != null 
+                        && order.getQueue().equals(top.getQueue())) {
+                    order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_QUEUE);
+                } else {
+                    order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PARENT_QUEUE);
+                }
+            }
         }
         return success;
     }
