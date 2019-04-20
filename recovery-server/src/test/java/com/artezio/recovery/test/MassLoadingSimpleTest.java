@@ -33,7 +33,10 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(
         classes = RecoveryServerApplication.class,
-        properties = {"com.artezio.recovery.seda.consumers=10"}
+        properties = {
+            "com.artezio.recovery.seda.consumers=20",
+            "spring.datasource.hikari.maximumPoolSize=20"
+        }
 )
 @MockEndpoints
 @Slf4j
