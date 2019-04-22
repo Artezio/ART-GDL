@@ -7,6 +7,7 @@ import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
+import org.apache.camel.CamelExecutionException;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
@@ -19,28 +20,21 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
- * Mass loading test for simple recovery requests.
+ * Same locking code income test.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(
-        classes = RecoveryServerApplication.class,
-        properties = {
-            "com.artezio.recovery.seda.consumers=20",
-            "spring.datasource.hikari.maximumPoolSize=20"
-        }
-)
+@SpringBootTest(classes = RecoveryServerApplication.class)
 @MockEndpoints
 @Slf4j
-public class MassLoadingSimpleTest {
+public class IncomeLockTest {
 
     /**
      * Test callback route URI.
@@ -57,16 +51,11 @@ public class MassLoadingSimpleTest {
     /**
      * Whole recovery processing time.
      */
-    private static final int ENDPOINT_TIMEOUT = 60_000;
+    private static final int ENDPOINT_TIMEOUT = 10_000;
     /**
      * Test execution timeout in milliseconds.
      */
-    private static final int TEST_TIMEOUT = 120_000;
-    /**
-     * Amount of SEDA concurrent consumers property.
-     */
-    @Value("${com.artezio.recovery.seda.consumers}")
-    private int sedaConsumers;
+    private static final int TEST_TIMEOUT = 60_000;
 
     /**
      * Current Apache Camel context.
@@ -91,14 +80,14 @@ public class MassLoadingSimpleTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
-     * Mass loading test for simple recovery requests definition.
+     * Same locking code income test definition.
      *
      * @throws Exception @see Exception
      */
     @Test(timeout = TEST_TIMEOUT)
-    public void massLoad() throws Exception {
+    public void incomeTest() throws Exception {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -115,16 +104,33 @@ public class MassLoadingSimpleTest {
                         .to(MOCK_RESULT_URI);
             }
         });
-        final int loadNumber = (ENDPOINT_TIMEOUT / PRODUCER_TIMEOUT) * sedaConsumers;
-        callback.expectedMessageCount(loadNumber);
-        for (int i = 0; i < loadNumber; i++) {
+        final String lockingCode = "test-lock";
+        callback.expectedMessageCount(1);
+        for (int i = 0; i < 5; i++) {
             RecoveryRequest req = new RecoveryRequest();
             req.setCallbackUri(CALLBACK_URI);
-            DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-            def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
-            TransactionStatus status = transactionManager.getTransaction(def);
-            producer.sendBody(req);
-            transactionManager.commit(status);
+            req.setLocker(lockingCode);
+            TransactionStatus status = null;
+            try {
+                DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+                def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
+                status = transactionManager.getTransaction(def);
+                producer.sendBody(req);
+                transactionManager.commit(status);
+            } catch (CamelExecutionException e) {
+                if (e.getCause() != null) {
+                    log.error(e.getCause().getClass().getSimpleName()
+                            + ": "
+                            + e.getCause().getMessage());
+                } else {
+                    log.error(e.getClass().getSimpleName()
+                            + ": "
+                            + e.getMessage());
+                }
+                if (status != null) {
+                    transactionManager.rollback(status);
+                }
+            }
         }
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();

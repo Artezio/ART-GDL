@@ -4,7 +4,9 @@ package com.artezio.recovery.test;
 
 import com.artezio.recovery.server.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
@@ -19,28 +21,21 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
- * Mass loading test for simple recovery requests.
+ * Processing delay by date test.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(
-        classes = RecoveryServerApplication.class,
-        properties = {
-            "com.artezio.recovery.seda.consumers=20",
-            "spring.datasource.hikari.maximumPoolSize=20"
-        }
-)
+@SpringBootTest(classes = RecoveryServerApplication.class)
 @MockEndpoints
 @Slf4j
-public class MassLoadingSimpleTest {
+public class ProcessingDelayByDateTest {
 
     /**
      * Test callback route URI.
@@ -55,18 +50,21 @@ public class MassLoadingSimpleTest {
      */
     private static final int PRODUCER_TIMEOUT = 5_000;
     /**
+     * Timeout in milliseconds for processing delay.
+     */
+    private static final int DELAY_TIMEOUT = 10_000;
+    /**
      * Whole recovery processing time.
      */
-    private static final int ENDPOINT_TIMEOUT = 60_000;
+    private static final int ENDPOINT_TIMEOUT = 20_000;
     /**
      * Test execution timeout in milliseconds.
      */
-    private static final int TEST_TIMEOUT = 120_000;
+    private static final int TEST_TIMEOUT = 60_000;
     /**
-     * Amount of SEDA concurrent consumers property.
+     * Apache Camel context header to fix delay checking result.
      */
-    @Value("${com.artezio.recovery.seda.consumers}")
-    private int sedaConsumers;
+    private static final String DELAY_CHECK_HEADER = "DELAY_CHECK";
 
     /**
      * Current Apache Camel context.
@@ -91,14 +89,14 @@ public class MassLoadingSimpleTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
-     * Mass loading test for simple recovery requests definition.
+     * Processing delay by date test definition.
      *
      * @throws Exception @see Exception
      */
     @Test(timeout = TEST_TIMEOUT)
-    public void massLoad() throws Exception {
+    public void delayTest() throws Exception {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -106,26 +104,27 @@ public class MassLoadingSimpleTest {
                         .routeId("TestCallback")
                         .setExchangePattern(ExchangePattern.InOut)
                         .process((Exchange exchange) -> {
+                            Date now = new Date(System.currentTimeMillis());
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
+                            RecoveryOrder order = exchange.getIn().getBody(RecoveryOrder.class);
+                            exchange.getIn().setHeader(DELAY_CHECK_HEADER, now.after(order.getProcessingFrom()));
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
                         }).id("TestProcessor")
                         .to(MOCK_RESULT_URI);
             }
         });
-        final int loadNumber = (ENDPOINT_TIMEOUT / PRODUCER_TIMEOUT) * sedaConsumers;
-        callback.expectedMessageCount(loadNumber);
-        for (int i = 0; i < loadNumber; i++) {
-            RecoveryRequest req = new RecoveryRequest();
-            req.setCallbackUri(CALLBACK_URI);
-            DefaultTransactionDefinition def = new DefaultTransactionDefinition();
-            def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
-            TransactionStatus status = transactionManager.getTransaction(def);
-            producer.sendBody(req);
-            transactionManager.commit(status);
-        }
+        callback.expectedHeaderReceived(DELAY_CHECK_HEADER, Boolean.TRUE);
+        RecoveryRequest req = new RecoveryRequest();
+        req.setCallbackUri(CALLBACK_URI);
+        req.setProcessingFrom(new Date(System.currentTimeMillis() + DELAY_TIMEOUT));
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
+        TransactionStatus status = transactionManager.getTransaction(def);
+        producer.sendBody(req);
+        transactionManager.commit(status);
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
         camel.stop();
