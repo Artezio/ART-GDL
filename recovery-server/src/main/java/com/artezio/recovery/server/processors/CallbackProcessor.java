@@ -208,20 +208,16 @@ public class CallbackProcessor implements Processor {
      */
     private boolean checkPause(RecoveryOrder order) throws Exception {
         order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_PAUSE);
-        boolean success = false;
+        boolean success = true;
         String pauseRule = order.getPause();
         if (pauseRule != null) {
-            Integer count = order.getProcessingCount();
+            Integer count = order.getProcessingCount() + 1;
             PauseConfig pauseConfig = new PauseConfig(pauseRule);
-            int timeout = pauseConfig.getInterval(count);
+            int timeout = pauseConfig.getInterval(count) * 1000;
             Date modified = order.getOrderModified();
             Date nextTryFrom = new Date(modified.getTime() + timeout);
             Date now = new Date(System.currentTimeMillis());
-            if (now.after(nextTryFrom)) {
-                success = true;
-            }
-        } else {
-            success = true;
+            success = now.after(nextTryFrom);
         }
         return success;
     }
@@ -247,7 +243,7 @@ public class CallbackProcessor implements Processor {
             } else {
                 success = false;
                 RecoveryOrder top = page.getContent().get(0);
-                if (order.getQueue() != null 
+                if (order.getQueue() != null
                         && order.getQueue().equals(top.getQueue())) {
                     order.setHoldingCode(HoldingCodeEnum.HOLDING_BY_QUEUE);
                 } else {

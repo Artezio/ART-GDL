@@ -4,6 +4,7 @@ package com.artezio.recovery.test;
 
 import com.artezio.recovery.server.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
@@ -73,7 +74,12 @@ public class MassLoadingSimpleTest {
      */
     @Autowired
     private CamelContext camel;
-
+    /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
+    
     /**
      * Recovery request income route producer.
      */
@@ -117,6 +123,7 @@ public class MassLoadingSimpleTest {
         });
         final int loadNumber = (ENDPOINT_TIMEOUT / PRODUCER_TIMEOUT) * sedaConsumers;
         callback.expectedMessageCount(loadNumber);
+        dao.deleteAll();
         for (int i = 0; i < loadNumber; i++) {
             RecoveryRequest req = new RecoveryRequest();
             req.setCallbackUri(CALLBACK_URI);

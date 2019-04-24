@@ -87,6 +87,7 @@
                         <exclude>**/MassLoadingSimpleTest.java</exclude>
                         <exclude>**/IncomeLockTest.java</exclude>
                         <exclude>**/ProcessingDelayByDateTest.java</exclude>
+                        <exclude>**/ProcessingDelayByPauseTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

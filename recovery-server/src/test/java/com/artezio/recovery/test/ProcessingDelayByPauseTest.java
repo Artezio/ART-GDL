@@ -5,8 +5,10 @@ package com.artezio.recovery.test;
 import com.artezio.recovery.server.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
@@ -28,7 +30,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 /**
- * Processing delay by date test.
+ * Processing delay by pause rule test.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
@@ -36,7 +38,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @SpringBootTest(classes = RecoveryServerApplication.class)
 @MockEndpoints
 @Slf4j
-public class ProcessingDelayByDateTest {
+public class ProcessingDelayByPauseTest {
 
     /**
      * Test callback route URI.
@@ -51,22 +53,36 @@ public class ProcessingDelayByDateTest {
      */
     private static final int PRODUCER_TIMEOUT = 5_000;
     /**
-     * Timeout in milliseconds for processing delay.
-     */
-    private static final int DELAY_TIMEOUT = 10_000;
-    /**
      * Whole recovery processing time.
      */
-    private static final int ENDPOINT_TIMEOUT = 20_000;
+    private static final int ENDPOINT_TIMEOUT = 60_000;
     /**
      * Test execution timeout in milliseconds.
      */
-    private static final int TEST_TIMEOUT = 60_000;
+    private static final int TEST_TIMEOUT = 120_000;
     /**
      * Apache Camel context header to fix delay checking result.
      */
     private static final String DELAY_CHECK_HEADER = "DELAY_CHECK";
-
+    /**
+     * Minimum seconds between 1 and 5 try.
+     */
+    private static final int PAUSE_FROM_1_TO_5_SEC = 5;
+    /**
+     * Minimum seconds between 5 and 7 try.
+     */
+    private static final int PAUSE_FROM_5_TO_7_SEC = 10;
+    /**
+     * Minimum seconds between each try after 7 one.
+     */
+    private static final int PAUSE_FROM_7 = 5;
+    /**
+     * Delay pause rule for recovery processing.
+     */
+    private static final String PAUSE_RULE = "1:" + PAUSE_FROM_1_TO_5_SEC 
+            + "; 5:" + PAUSE_FROM_5_TO_7_SEC
+            + "; 7:" + PAUSE_FROM_7;
+            
     /**
      * Current Apache Camel context.
      */
@@ -97,7 +113,7 @@ public class ProcessingDelayByDateTest {
     private MockEndpoint callback;
 
     /**
-     * Processing delay by date test definition.
+     * Processing delay by pause rule test definition.
      *
      * @throws Exception @see Exception
      */
@@ -111,11 +127,33 @@ public class ProcessingDelayByDateTest {
                         .setExchangePattern(ExchangePattern.InOut)
                         .process((Exchange exchange) -> {
                             Date now = new Date(System.currentTimeMillis());
-                            log.info(exchange.getExchangeId()
-                                    + ": "
-                                    + Thread.currentThread().getName());
                             RecoveryOrder order = exchange.getIn().getBody(RecoveryOrder.class);
-                            exchange.getIn().setHeader(DELAY_CHECK_HEADER, now.after(order.getProcessingFrom()));
+                            Boolean delayCheck = exchange.getIn().getHeader(DELAY_CHECK_HEADER, Boolean.class);
+                            delayCheck = (delayCheck == null) ? true : delayCheck;
+                            ClientResponse response = new ClientResponse();
+                            int count = order.getProcessingCount();
+                            response.setResult((count > 7)
+                                    ? ClientResultEnum.SUCCESS
+                                    : ClientResultEnum.BUSINESS_ERROR);
+                            long delayMs;
+                            if (count >= 7) {
+                                delayMs = PAUSE_FROM_7 * 1000;
+                            } else if (count >= 5) {
+                                delayMs = PAUSE_FROM_5_TO_7_SEC * 1000;
+                            } else {
+                                delayMs = PAUSE_FROM_1_TO_5_SEC * 1000;
+                            }
+                            Date modified = order.getOrderModified();
+                            Date delayed = new Date(modified.getTime() + delayMs);
+                            delayCheck &= now.after(delayed);
+                            exchange.getIn().setHeader(DELAY_CHECK_HEADER, delayCheck);
+                            exchange.getIn().setBody(response);
+                            log.info(Thread.currentThread().getName()
+                                    + "; count = " + count
+                                    + "; delayCheck = " + delayCheck
+                                    + "; modified = " + modified 
+                                    + "; delayed = " + delayed
+                                    + "; now = " + now);
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
                         }).id("TestProcessor")
@@ -125,7 +163,7 @@ public class ProcessingDelayByDateTest {
         callback.expectedHeaderReceived(DELAY_CHECK_HEADER, Boolean.TRUE);
         RecoveryRequest req = new RecoveryRequest();
         req.setCallbackUri(CALLBACK_URI);
-        req.setProcessingFrom(new Date(System.currentTimeMillis() + DELAY_TIMEOUT));
+        req.setPause(PAUSE_RULE);
         dao.deleteAll();
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);

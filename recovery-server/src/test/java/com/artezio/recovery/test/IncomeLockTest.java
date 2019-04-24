@@ -4,6 +4,7 @@ package com.artezio.recovery.test;
 
 import com.artezio.recovery.server.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
@@ -62,7 +63,12 @@ public class IncomeLockTest {
      */
     @Autowired
     private CamelContext camel;
-
+    /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
+    
     /**
      * Recovery request income route producer.
      */
@@ -106,6 +112,7 @@ public class IncomeLockTest {
         });
         final String lockingCode = "test-lock";
         callback.expectedMessageCount(1);
+        dao.deleteAll();
         for (int i = 0; i < 5; i++) {
             RecoveryRequest req = new RecoveryRequest();
             req.setCallbackUri(CALLBACK_URI);
