@@ -119,7 +119,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + "WHERE (o.id IN ("
             + " SELECT MIN(q.id) FROM RecoveryOrder q"
             + " WHERE q.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING"
-            + " GROUP BY o.queue)) "
+            + " GROUP BY q.queue)) "
             + "AND (o.versionId IS NULL) "
             + "AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate)) "
             + "ORDER BY o.orderOpened ASC")
