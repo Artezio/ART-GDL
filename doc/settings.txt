@@ -1,0 +1,39 @@
+##
+# Artezio settings
+#
+# (In common use library with default settings.)
+##
+
+# Schedule timer period property. Apache Camel time unit.
+# (see Apache Camel Timer component)
+# default: 50
+com.artezio.recovery.timer.period
+
+# Amount of SEDA concurrent consumers property.
+# default: 10
+com.artezio.recovery.seda.consumers
+
+# Schedule cleaning period property. Apache Camel time unit.
+# (see Apache Camel Timer component)
+# default: 15m
+com.artezio.recovery.timer.period
+
+# Property of flag to schedule processing. Boolean.
+# default: true
+com.artezio.recovery.schedule.enebled
+
+# Property of flag to allow processing of expired orders. Boolean.
+# default: true
+com.artezio.recovery.delivery.expired
+
+# Property of flag to allow successfully processed orders cleaning. Boolean.
+# default: true
+com.artezio.recovery.cleaning.success
+
+# Property of flag to allow failed orders cleaning. Boolean.
+# default: true
+com.artezio.recovery.cleaning.error
+
+# Property of resuming timeout in minutes. Number.
+# default: 10
+com.artezio.recovery.resuming.timeout.minutes

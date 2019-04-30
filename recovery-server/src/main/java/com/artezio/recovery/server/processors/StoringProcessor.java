@@ -13,7 +13,6 @@ import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +38,6 @@ public class StoringProcessor implements Processor {
      */
     @Autowired
     private IRecoveryOrderCrud dao;
-    /**
-     * Access to the current Apache Camel context.
-     */
-    @Autowired
-    private CamelContext camel;
 
     /**
      * Recovery request storing process definition.
