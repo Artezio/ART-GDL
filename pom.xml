@@ -17,5 +17,6 @@
     <name>Recovery: Artezio Guaranteed Delivery</name>
     <modules>
         <module>recovery-server</module>
+        <module>example-billling-adaptor</module>
     </modules>
 </project>

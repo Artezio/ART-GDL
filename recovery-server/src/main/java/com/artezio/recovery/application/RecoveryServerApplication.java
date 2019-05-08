@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server;
+package com.artezio.recovery.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

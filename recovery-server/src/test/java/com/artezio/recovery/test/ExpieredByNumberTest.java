@@ -2,7 +2,7 @@
  */
 package com.artezio.recovery.test;
 
-import com.artezio.recovery.server.RecoveryServerApplication;
+import com.artezio.recovery.application.RecoveryServerApplication;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.ClientResponse;
