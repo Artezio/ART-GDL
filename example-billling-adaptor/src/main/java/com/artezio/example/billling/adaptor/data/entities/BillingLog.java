@@ -6,6 +6,8 @@ import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
 import java.io.Serializable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -33,10 +35,11 @@ public class BillingLog implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = false)
+    @Column(nullable = true)
     @ManyToOne
     private BillingClient client;
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private BillingOperationType operationType;
     @Column(nullable = false, length = 4000)
     private String description;
