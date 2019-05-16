@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -19,7 +20,9 @@ import lombok.Data;
  * Billing operations log.
  * <pre>
  * id - Log ID.
+ * account - Billing account.
  * client - Billing client.
+ * externalId - External operation ID.
  * operationType - Billing operation type.
  * description - Processing description.
  * </pre>
@@ -35,9 +38,12 @@ public class BillingLog implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(nullable = true)
-    @ManyToOne
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
+    private BillingAccount account;
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
     private BillingClient client;
+    @Column(nullable = true, length = 128)
+    private String externalId;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private BillingOperationType operationType;

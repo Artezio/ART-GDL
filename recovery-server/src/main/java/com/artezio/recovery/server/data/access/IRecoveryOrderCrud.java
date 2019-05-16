@@ -10,12 +10,14 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 /**
  * Data access operations for recovery orders.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
+@Repository
 public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> {
 
     /**

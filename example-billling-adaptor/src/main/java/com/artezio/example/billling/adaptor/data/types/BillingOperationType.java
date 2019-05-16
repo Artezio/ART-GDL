@@ -3,7 +3,7 @@
 package com.artezio.example.billling.adaptor.data.types;
 
 /**
- * Billing operation types
+ * Billing operation types.
  * 
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
@@ -17,6 +17,10 @@ public enum BillingOperationType {
      * Client account is locked.
      */
     ACCOUNT_LOCKED,
+    /**
+     * Client account is unlocked.
+     */
+    ACCOUNT_UNLOCKED,
     /**
      * Payment committed to an client account.
      */

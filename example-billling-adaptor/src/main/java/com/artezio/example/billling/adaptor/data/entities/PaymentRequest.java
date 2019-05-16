@@ -2,7 +2,7 @@
  */
 package com.artezio.example.billling.adaptor.data.entities;
 
-import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
+import com.artezio.example.billling.adaptor.data.types.PaymentOperationType;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -11,6 +11,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -71,14 +72,13 @@ public class PaymentRequest implements Serializable {
     
     @Column
     private BigDecimal amount;
-    @Column(nullable = false)
-    @ManyToOne
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     private BillingClient client;
     @Column
     private Integer successCount;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    private BillingOperationType operationType;
+    private PaymentOperationType operationType;
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentState paymentState;
