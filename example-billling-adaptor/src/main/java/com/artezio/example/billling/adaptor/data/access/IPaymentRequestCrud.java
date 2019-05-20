@@ -3,6 +3,10 @@
 package com.artezio.example.billling.adaptor.data.access;
 
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -13,5 +17,24 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface IPaymentRequestCrud extends CrudRepository<PaymentRequest, Long> {
+    
+    /**
+     * Get new payment requests for billing processing.
+     * 
+     * @param pageable Data page settings.
+     * @return Data page of payment requests records.
+     */
+    @Query("SELECT r FROM PaymentRequest r WHERE r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.REGISTERED")
+    Page<PaymentRequest> getNew(Pageable pageable);
+    
+    /**
+     * Set canceled state to current billing processing requests.
+     */
+    @Modifying
+    @Query("UPDATE PaymentRequest r SET"
+            + " r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.CANCELED "
+            + "WHERE"
+            + " r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.PROCESSING")
+    void cancelProcessing();
     
 }
