@@ -2,8 +2,8 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import com.artezio.example.billling.adaptor.data.access.IBillingClientCrud;
-import com.artezio.example.billling.adaptor.data.entities.BillingClient;
+import com.artezio.example.billling.adaptor.data.access.IBillingLogCrud;
+import com.artezio.example.billling.adaptor.data.entities.BillingLog;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,33 +16,33 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Clients management operations.
+ * Billing log management operations.
  *
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Service
-public class ClientsManagement {
+public class BillingLogManagement {
 
     /**
-     * Billing accounts data access object.
+     * Payment requests data access object.
      */
     @Autowired
-    private IBillingClientCrud daoClients;
+    private IBillingLogCrud daoLog;
 
     /**
-     * Get a page of client records.
+     * Get a page of billing log records.
      *
      * @param pageNumber Data page number.
      * @param pageSize Data page size.
      * @param ascSorting Data page ascending sorting fields.
      * @param descSorting Data page descending sorting fields.
-     * @return Data page of clients records.
+     * @return Data page of billing log records.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<BillingClient> getClientPage(int pageNumber, int pageSize, 
+    public List<BillingLog> getLogPage(int pageNumber, int pageSize, 
             Set<String> ascSorting, Set<String> descSorting) {
-        List<BillingClient> clients = new ArrayList<>();
-        List<Sort.Order> orders = new ArrayList<>();
+        List<BillingLog> bLogs = new ArrayList<>();
+        List<Sort.Order> orders  = new ArrayList<>();
         if (ascSorting != null) {
             ascSorting.forEach((field) -> {
                 orders.add(Sort.Order.asc(field));
@@ -53,49 +53,31 @@ public class ClientsManagement {
                 orders.add(Sort.Order.desc(field));
             });
         }
-        Page<BillingClient> page = daoClients.findAll(
+        Page<BillingLog> page = daoLog.findAll(
                 PageRequest.of(
                         pageNumber, 
                         pageSize,
                         Sort.by(orders)
                         ));
-        clients.addAll(page.getContent());
-        return clients;
+        bLogs.addAll(page.getContent());
+        return bLogs;
     }
-
+   
     /**
-     * Create or update client record to the DB.
-     *
-     * @param client Client record object.
+     * Remove all billing log records from the DB.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public void save(BillingClient client) {
-        if (client == null) {
-            return;
-        }
-        daoClients.save(client);
-    }
-
-    /**
-     * Remove client record from the DB.
-     *
-     * @param clientId Client record ID.
-     */
-    @Transactional(propagation = Propagation.REQUIRED)
-    public void remove(Long clientId) {
-        if (clientId == null) {
-            return;
-        }
-        daoClients.deleteById(clientId);
+    public void removeAll() {
+        daoLog.deleteAll();
     }
     
     /**
-     * Count all client records.
+     * Count all billing log records.
      * 
-     * @return Number of all client records in the DB.
+     * @return Number of all billing log records in the DB.
      */
     public long count() {
-        return daoClients.count();
+        return daoLog.count();
     }
     
 }

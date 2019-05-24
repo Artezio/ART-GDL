@@ -6,9 +6,9 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Repository;
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Repository
-public interface IPaymentRequestCrud extends CrudRepository<PaymentRequest, Long> {
+public interface IPaymentRequestCrud extends JpaRepository<PaymentRequest, Long> {
 
     /**
      * Get new payment requests for billing processing.
@@ -38,15 +38,6 @@ public interface IPaymentRequestCrud extends CrudRepository<PaymentRequest, Long
             + "WHERE"
             + " r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.PROCESSING")
     void cancelProcessing();
-
-    /**
-     * Get a page of payment request records.
-     *
-     * @param pageable Data page settings.
-     * @return Data page of payment request records.
-     */
-    @Query("SELECT r FROM PaymentRequest r")
-    Page<PaymentRequest> getPage(Pageable pageable);
 
     /**
      * Count payment requests by state.

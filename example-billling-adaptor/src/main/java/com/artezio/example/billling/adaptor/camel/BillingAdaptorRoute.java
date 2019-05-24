@@ -110,7 +110,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                         }
                         payment = paymentRecord.get();
                         msg.setClient(payment.getClient());
-                        account = daoAccounts.findClientAccount(payment.getClient());
+                        account = payment.getClient().getAccount();
                         if (account == null) {
                             txt = "Billing account is not found.";
                             response.setResult(ClientResultEnum.BUSINESS_FATAL_ERROR);
@@ -187,6 +187,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                             daoAccounts.save(account);
                         }
                         if (payment != null) {
+                            payment.setDescription(txt);
                             daoPayments.save(payment);
                         }
                         daoLog.save(msg);

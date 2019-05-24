@@ -8,9 +8,11 @@ import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.example.billling.adaptor.services.types.PaymentStateCounter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +36,31 @@ public class PaymentsManagement {
      *
      * @param pageNumber Data page number.
      * @param pageSize Data page size.
+     * @param ascSorting Data page ascending sorting fields.
+     * @param descSorting Data page descending sorting fields.
      * @return Data page of clients records.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<PaymentRequest> getPaymentsPage(int pageNumber, int pageSize) {
+    public List<PaymentRequest> getPaymentsPage(int pageNumber, int pageSize, 
+            Set<String> ascSorting, Set<String> descSorting) {
         List<PaymentRequest> payments = new ArrayList<>();
-        Page<PaymentRequest> page = daoPayments.getPage(PageRequest.of(pageNumber, pageSize));
+        List<Sort.Order> orders  = new ArrayList<>();
+        if (ascSorting != null) {
+            ascSorting.forEach((field) -> {
+                orders.add(Sort.Order.asc(field));
+            });
+        }
+        if (descSorting != null) {
+            descSorting.forEach((field) -> {
+                orders.add(Sort.Order.desc(field));
+            });
+        }
+        Page<PaymentRequest> page = daoPayments.findAll(
+                PageRequest.of(
+                        pageNumber, 
+                        pageSize,
+                        Sort.by(orders)
+                        ));
         payments.addAll(page.getContent());
         return payments;
     }
@@ -71,7 +92,7 @@ public class PaymentsManagement {
     }
     
     /**
-     * Remove all payment request record from the DB.
+     * Remove all payment request records from the DB.
      */
     @Transactional(propagation = Propagation.REQUIRED)
     public void removeAll() {
@@ -92,7 +113,17 @@ public class PaymentsManagement {
         counter.setCanceled(daoPayments.countByState(PaymentState.CANCELED));
         counter.setSuccess(daoPayments.countByState(PaymentState.SUCCESS));
         counter.setExpired(daoPayments.countByState(PaymentState.EXPIRED));
+        counter.setAll(daoPayments.count());
         return counter;
     }
-
+    
+    /**
+     * Count all payment request records.
+     * 
+     * @return Number of all payment request records in the DB.
+     */
+    public long count() {
+        return daoPayments.count();
+    }
+ 
 }

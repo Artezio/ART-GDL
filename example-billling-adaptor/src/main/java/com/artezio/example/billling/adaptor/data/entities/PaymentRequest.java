@@ -39,6 +39,7 @@ import lombok.Data;
  *  successCount - Number of example tries to set payment success state. 
  *  operationType - Billing operation type.
  *  paymentState - Current payment state.
+ *  description - Billing processing description.
  * </pre>
  * 
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
@@ -82,4 +83,7 @@ public class PaymentRequest implements Serializable {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentState paymentState;
+    @Column(length = 128)
+    private String description;
+    
 }

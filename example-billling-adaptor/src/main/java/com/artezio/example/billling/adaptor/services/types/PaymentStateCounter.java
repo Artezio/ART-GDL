@@ -14,6 +14,7 @@ import lombok.Data;
  *  canceled - counter for CANCELED payment state.
  *  success - counter for SUCCESS payment state.
  *  expired - counter for EXPIRED payment state.
+ *  all - count all records.
  * </pre>
  * 
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
@@ -27,5 +28,6 @@ public class PaymentStateCounter {
     private long canceled;
     private long success;
     private long expired;
+    private long all;
     
 }
