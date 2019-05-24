@@ -41,7 +41,7 @@ public class BillingClient implements Serializable {
     private String firstName;
     @Column(nullable = false)
     private String lastName;
-    @OneToOne(optional = false, fetch = FetchType.EAGER, cascade = {CascadeType.REMOVE})
+    @OneToOne(optional = true, fetch = FetchType.EAGER, cascade = {CascadeType.REMOVE})
     private BillingAccount account;
     @OneToMany(fetch = FetchType.LAZY, cascade = {CascadeType.REMOVE})
     private Set<PaymentRequest> payments;

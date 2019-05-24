@@ -2,8 +2,12 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
+import com.artezio.example.billling.adaptor.data.access.IBillingAccountCrud;
 import com.artezio.example.billling.adaptor.data.access.IBillingClientCrud;
+import com.artezio.example.billling.adaptor.data.entities.BillingAccount;
 import com.artezio.example.billling.adaptor.data.entities.BillingClient;
+import com.artezio.example.billling.adaptor.data.types.ClientAccountState;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +32,12 @@ public class ClientsManagement {
      */
     @Autowired
     private IBillingClientCrud daoClients;
-
+    /**
+     * Billing accounts data access object.
+     */
+    @Autowired
+    private IBillingAccountCrud daoAccounts;
+    
     /**
      * Get a page of client records.
      *
@@ -97,5 +106,22 @@ public class ClientsManagement {
     public long count() {
         return daoClients.count();
     }
-    
+        /**
+     * Create and store new client record in the DB.
+     *
+     * @param firstName First client name.
+     * @param lastName Last client name.
+     */
+    @Transactional
+    public void appendClient(String firstName, String lastName) {
+        BillingClient c = new BillingClient();
+        c.setFirstName(firstName);
+        c.setLastName(lastName);
+        c = daoClients.save(c);
+        BillingAccount a = new BillingAccount();
+        a.setBalance(BigDecimal.ZERO);
+        a.setBillingState(ClientAccountState.NEW);
+        a.setClient(c);
+        daoAccounts.save(a);
+    }
 }
