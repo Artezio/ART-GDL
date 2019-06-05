@@ -45,7 +45,7 @@ public interface IPaymentRequestCrud extends JpaRepository<PaymentRequest, Long>
      * @param paymentState Payment request state.
      * @return Number of payment requests with the state.
      */
-    @Query("SELECT r FROM PaymentRequest r WHERE r.paymentState = :paymentState")
+    @Query("SELECT COUNT(r) FROM PaymentRequest r WHERE r.paymentState = :paymentState")
     long countByState(@Param("paymentState") PaymentState paymentState);
 
 }
