@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Olesia Shuliaeva <os.netbox@gmail.com>
  */
 @Service
+@Slf4j
 public class ClientsManagement {
 
     /**
@@ -37,7 +39,7 @@ public class ClientsManagement {
      */
     @Autowired
     private IBillingAccountCrud daoAccounts;
-    
+
     /**
      * Get a page of client records.
      *
@@ -48,7 +50,7 @@ public class ClientsManagement {
      * @return Data page of clients records.
      */
     @Transactional(propagation = Propagation.REQUIRED)
-    public List<BillingClient> getClientPage(int pageNumber, int pageSize, 
+    public List<BillingClient> getClientPage(int pageNumber, int pageSize,
             Set<String> ascSorting, Set<String> descSorting) {
         List<BillingClient> clients = new ArrayList<>();
         List<Sort.Order> orders = new ArrayList<>();
@@ -64,11 +66,13 @@ public class ClientsManagement {
         }
         Page<BillingClient> page = daoClients.findAll(
                 PageRequest.of(
-                        pageNumber, 
+                        pageNumber,
                         pageSize,
                         Sort.by(orders)
-                        ));
-        clients.addAll(page.getContent());
+                ));
+        if (page.getContent() != null) {
+            clients.addAll(page.getContent());
+        }
         return clients;
     }
 
@@ -97,16 +101,17 @@ public class ClientsManagement {
         }
         daoClients.deleteById(clientId);
     }
-    
+
     /**
      * Count all client records.
-     * 
+     *
      * @return Number of all client records in the DB.
      */
     public long count() {
         return daoClients.count();
     }
-        /**
+
+    /**
      * Create and store new client record in the DB.
      *
      * @param firstName First client name.
@@ -117,11 +122,11 @@ public class ClientsManagement {
         BillingClient c = new BillingClient();
         c.setFirstName(firstName);
         c.setLastName(lastName);
-        c = daoClients.save(c);
         BillingAccount a = new BillingAccount();
         a.setBalance(BigDecimal.ZERO);
         a.setBillingState(ClientAccountState.NEW);
         a.setClient(c);
-        daoAccounts.save(a);
+        c.setAccount(a);
+        daoClients.save(c);
     }
 }

@@ -21,6 +21,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class JsfConfig extends SpringBootServletInitializer implements WebMvcConfigurer {
 
+    /**
+     * JSF Servlet web context registration bean.
+     * 
+     * @return Servlet registration bean.
+     */
     @Bean
     public ServletRegistrationBean servletRegistrationBean() {
         FacesServlet servlet = new FacesServlet();
@@ -28,6 +33,11 @@ public class JsfConfig extends SpringBootServletInitializer implements WebMvcCon
         return reg;
     }
 
+    /**
+     * Embedded Apache Tomcat configuration bean.
+     * 
+     * @return Embedded server configuration bean.
+     */
     @Bean
     public TomcatServletWebServerFactory tomcatFactory() {
         return new TomcatServletWebServerFactory() {
@@ -38,6 +48,11 @@ public class JsfConfig extends SpringBootServletInitializer implements WebMvcCon
         };
     }
 
+    /**
+     * Web context navigation rules applier.
+     * 
+     * @param registry View controller registry access bean.
+     */
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
         registry.addViewController("/").setViewName("forward:/index.jsf");

@@ -1,12 +1,37 @@
 <?xml version='1.0' encoding='UTF-8' ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
       xmlns:h="http://xmlns.jcp.org/jsf/html">
     <h:head>
-        <title>Facelet Title</title>
+        <title>Test billing adaptor panel</title>
+        <style>
+            .fHeader {
+                text-align: left;
+            }            
+        </style>
     </h:head>
     <h:body>
-        Hello from Facelets
+        <h:panelGrid id = "panel" columns = "2" border = "0"
+                     cellpadding = "10" cellspacing = "1">
+            <h:dataTable value = "#{userSession.clients}" var = "client"
+                         border="0" width="480">
+                <h:column headerClass="fHeader">    				
+                    <f:facet name="header">First name</f:facet>
+                    <h:outputLabel value="#{client.firstName}"/>                    
+                </h:column>
+                <h:column headerClass="fHeader">
+                    <f:facet name="header">Last name</f:facet>
+                    <h:outputLabel value="#{client.lastName}"/>                    
+                </h:column>
+                <h:column headerClass="fHeader">
+                    <f:facet name="header">Balance</f:facet>
+                    <h:outputLabel value="#{client.account.balance}">
+                       <f:convertNumber pattern="####0.00 cr"/>
+                    </h:outputLabel>
+                </h:column>
+            </h:dataTable>
+        </h:panelGrid>        
     </h:body>
 </html>
 
