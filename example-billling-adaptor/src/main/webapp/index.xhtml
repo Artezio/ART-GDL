@@ -3,7 +3,8 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:ui = "http://java.sun.com/jsf/facelets"
       xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:h="http://xmlns.jcp.org/jsf/html">
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:p="http://primefaces.org/ui">
     <h:head>
         <title>Test billing adaptor panel</title>
         <style>
@@ -21,7 +22,7 @@
                 float: left;
             }
             .content {
-                max-width: 720px;
+                max-width: 800px;
                 margin: auto;
             }
             .bCommand {
@@ -31,50 +32,75 @@
         </style>
     </h:head>
     <h:body>
-        <div class="content">
-            <h:dataTable id="clientList" border="0" width="360" styleClass="tLine"
-                         value="#{userSession.clients}" var="client">
-                <h:column headerClass="fHeader">    				
-                    <f:facet name="header">First name</f:facet>
-                    <h:outputLabel value="#{client.firstName}"/>                    
-                </h:column>
-                <h:column headerClass="fHeader">
-                    <f:facet name="header">Last name</f:facet>
-                    <h:outputLabel value="#{client.lastName}"/>                    
-                </h:column>
-                <h:column headerClass="fHeader">
-                    <f:facet name="header">Balance</f:facet>
-                    <h:outputLabel value="#{client.account.balance}">
-                        <f:convertNumber pattern="####0.00 cr"/>
-                    </h:outputLabel>
-                </h:column>
-            </h:dataTable>
-            <h:panelGrid id="paymentStates" border="0" width="360" 
-                         styleClass="tLine" headerClass="fHeader"
-                         columns="3">
-                <h:outputLabel value="REGISTERED" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.registered}" styleClass="lRow" />
-                <h:button value="START" styleClass="bCommand" />
-                <h:outputLabel value="PROCESSING" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.processing}" styleClass="lRow" />
-                <h:button value="STOP" styleClass="bCommand" />
-                <h:outputLabel value="SUCCESS" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.success}" styleClass="lRow" />
-                <h:button value="CLEAN ALL" styleClass="bCommand" />
-                <h:outputLabel value="EXPIRED" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.expired}" styleClass="lRow" />
-                <h:button value="GENERATE" styleClass="bCommand" />
-                <h:outputLabel value="CANCELED" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.canceled}" styleClass="lRow" />
-                <h:outputLabel value=" " styleClass="lRow" />
-                <h:outputLabel value="SYSTEM_ERROR" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.systemError}" styleClass="lRow" />
-                <h:outputLabel value=" " styleClass="lRow" />
-                <h:outputLabel value="TOTAL" styleClass="lHeader" />
-                <h:outputLabel value="#{userSession.stateCounter.all}" styleClass="lRow" />
-                <h:outputLabel value=" " styleClass="lRow" />
-            </h:panelGrid>
-        </div>
+        <h:form id="indexView">
+            <p:poll interval="3" update="indexView" listener="#{userSession.timerListener()}" />
+            <div class="content">
+                <h:dataTable id="clientList" border="0" width="360" styleClass="tLine"
+                             value="#{userSession.clients}" var="client">
+                    <h:column headerClass="fHeader">    				
+                        <f:facet name="header">First name</f:facet>
+                        <h:outputLabel value="#{client.firstName}"/>                    
+                    </h:column>
+                    <h:column headerClass="fHeader">
+                        <f:facet name="header">Last name</f:facet>
+                        <h:outputLabel value="#{client.lastName}"/>                    
+                    </h:column>
+                    <h:column headerClass="fHeader">
+                        <f:facet name="header">Balance</f:facet>
+                        <h:outputLabel value="#{client.account.balance}">
+                            <f:convertNumber pattern="####0.00 cr"/>
+                        </h:outputLabel>
+                    </h:column>
+                </h:dataTable>
+                <h:panelGrid id="paymentStates" border="0" width="360" 
+                             styleClass="tLine" headerClass="fHeader"
+                             columns="3">
+                    <h:outputLabel value="REGISTERED" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.registered}" styleClass="lRow" />
+                    <h:commandButton value="START" styleClass="bCommand" 
+                                     disabled="#{userSession.disableStartButton()}"
+                                     action="#{userSession.start()}" >
+                        <f:ajax render="@all" />
+                    </h:commandButton>
+                    <h:outputLabel value="PROCESSING" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.processing}" styleClass="lRow" />
+                    <h:commandButton value="STOP" styleClass="bCommand"
+                                     disabled="#{userSession.disableStopButton()}"
+                                     action="#{userSession.stop()}" >
+                        <f:ajax render="@all" />
+                    </h:commandButton>
+                    <h:outputLabel value="SUCCESS" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.success}" styleClass="lRow" />
+                    <h:commandButton value="CLEAN" styleClass="bCommand" 
+                                     disabled="#{userSession.disableStartButton()}"
+                                     action="#{userSession.cleanData()}">
+                        <f:ajax render="@all" />
+                    </h:commandButton>
+                    <h:outputLabel value="EXPIRED" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.expired}" styleClass="lRow" />
+                    <h:commandButton value="GENERATE" styleClass="bCommand" 
+                                     disabled="#{userSession.disableStartButton()}"
+                                     action="#{userSession.generateData()}" >
+                        <f:ajax render="@all" />
+                    </h:commandButton>
+                    <h:outputLabel value="CANCELED" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.canceled}" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="SYSTEM_ERROR" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.systemError}" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="TOTAL" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.stateCounter.all}" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="____________" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="ETA" styleClass="lHeader" />
+                    <h:outputLabel value="#{userSession.eta}" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                </h:panelGrid>
+            </div>
+        </h:form>
     </h:body>
 </html>
 

@@ -9,6 +9,7 @@ import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -58,23 +59,24 @@ public class BatchProcessing {
 
     /**
      * Stop all current processes.
-     *
-     * @throws Exception
      */
-    public void stopAll() throws Exception {
-        camel.stop();
-        daoRecovery.deleteAll();
-        daoPayments.cancelProcessing();
-        camel.start();
-    }
+    public void stopAll() {
+        try {
+            camel.stopRoute(RecoveryRoutes.INCOME_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.TIMER_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.SEDA_ID, 5, TimeUnit.SECONDS);
+            camel.stop();
+            daoRecovery.deleteAll();
+            daoPayments.cancelProcessing();
+            camel.start();
+        } catch (Exception e) {
+            String error = e.getClass().getSimpleName()
+                    + ": "
+                    + e.getMessage();
+            log.error(error);
+        }
 
-    /**
-     * Check is processing available.
-     *
-     * @return True if processing available.
-     */
-    public boolean isProcessing() {
-        return camel.getStatus().isStarted();
     }
 
     /**
@@ -83,10 +85,11 @@ public class BatchProcessing {
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
     public void startAll() {
-        if (!isProcessing()) {
+        if (!camel.getStatus().isStarted()) {
             return;
         }
-        Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(0, PAGE_SIZE));
+        int pageNum = 0;
+        Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
         while (page.hasContent()) {
             for (PaymentRequest payment : page) {
                 try {
@@ -101,7 +104,7 @@ public class BatchProcessing {
                     payment.setDescription(error);
                 }
             }
-            page = daoPayments.getNew(PageRequest.of(0, PAGE_SIZE));
+            page = daoPayments.getNew(PageRequest.of(++pageNum, PAGE_SIZE));
         }
     }
 

@@ -153,16 +153,21 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 txt = "Account have been unlocked.";
                                 break;
                             case ENROLL_PAYMENT:
-                                if (ClientAccountState.OPEN.equals(account.getBillingState())) {
-                                    msg.setOperationType(BillingOperationType.PAYMENT_COMMITTED);
-                                    BigDecimal paymentAmount = payment.getAmount();
-                                    BigDecimal accountAmount = account.getBalance();
-                                    BigDecimal resultBalance = accountAmount.add(paymentAmount);
-                                    account.setBalance(resultBalance);
-                                    txt = String.valueOf(paymentAmount) + " enrolled.";
-                                } else {
-                                    msg.setOperationType(BillingOperationType.PAYMENT_REFUSED);
-                                    txt = "Account is locked.";
+                                switch (account.getBillingState()) {
+                                    case OPEN:
+                                    case NEW:
+                                        msg.setOperationType(BillingOperationType.PAYMENT_COMMITTED);
+                                        BigDecimal paymentAmount = payment.getAmount();
+                                        BigDecimal accountAmount = account.getBalance();
+                                        BigDecimal resultBalance = accountAmount.add(paymentAmount);
+                                        account.setBalance(resultBalance);
+                                        txt = String.valueOf(paymentAmount) + " enrolled.";
+                                        break;
+                                    case LOCKED:
+                                    default:
+                                        msg.setOperationType(BillingOperationType.PAYMENT_REFUSED);
+                                        txt = "Account is locked.";
+                                        break;
                                 }
                                 break;
                         }
