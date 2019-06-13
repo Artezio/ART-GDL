@@ -4,10 +4,10 @@ package com.artezio.example.billling.adaptor.services;
 
 import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
 import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
+import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +45,7 @@ public class BatchProcessing {
      * Recovery records data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud daoRecovery;
+    private IRecoveryClientCrud daoRecovery;
     /**
      * Payment requests data access object.
      */
@@ -56,7 +56,25 @@ public class BatchProcessing {
      */
     @Produce(uri = RecoveryRoutes.INCOME_URL)
     private ProducerTemplate producer;
+    
+    /**
+     * Count all processing recovery orders.
+     * 
+     * @return Number of all processing recovery orders.
+     */
+    public long countProcessingOrders() {
+        return daoRecovery.countProcessingOrders();
+    }
 
+    /**
+     * Count paused processing recovery orders.
+     * 
+     * @return Number of paused processing recovery orders.
+     */
+    public long countPausedOrders() {
+        return daoRecovery.countPausedOrders();
+    }
+    
     /**
      * Stop all current processes.
      */

@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.example.billling.adaptor.web;
+package com.artezio.example.billling.adaptor.web.pages;
 
 import com.artezio.example.billling.adaptor.data.entities.BillingClient;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
@@ -33,12 +33,16 @@ import org.springframework.web.context.annotation.SessionScope;
 @ManagedBean
 @Component
 @Slf4j
-public class UserSession {
+public class IndexPageBean {
 
     /**
      * Test payments generation batch size.
      */
     public static final int GEN_SIZE = 4;
+    /**
+     * Payments data view page size.
+     */
+    public static final int PAGE_SIZE = 20;
 
     /**
      * Client management service.
@@ -65,6 +69,11 @@ public class UserSession {
      */
     @Getter
     private List<BillingClient> clients;
+    /**
+     * Payments request list.
+     */
+    @Getter
+    private List<PaymentRequest> payments;
     /**
      * Payment state counter.
      */
@@ -95,6 +104,16 @@ public class UserSession {
      * Async command thread keeper.
      */
     private final ExecutorService commandExecutor = Executors.newFixedThreadPool(1);
+    /**
+     * Payments data view current page number.
+     */
+    @Getter
+    private long currentPage = 0;
+    /**
+     * Payments data view last page number.
+     */
+    @Getter
+    private long lastPage = 0;
 
     /**
      * Bean post construct actions.
@@ -103,21 +122,56 @@ public class UserSession {
     public void createSession() {
         log.info("User session created.");
         dataGen.generateClientsIfEmpty();
-        loadClients();
         examplePayment.setSuccessCount(5);
-        stateCounter = paymentsManager.countStates();
+        loadViewData();
         if (stateCounter != null && stateCounter.getAll() <= 0) {
             generateData();
         }
     }
 
-    public void loadClients() {
-        clients = new ArrayList<>();
+    /**
+     * View data loading method.
+     */
+    public void loadViewData() {
+        clients = new ArrayList<>(1000);
         Set<String> ascSort = new HashSet<>();
         ascSort.add("firstName");
         List<BillingClient> data = clintsManager.getClientPage(0, 1000, ascSort, null);
         if (data != null) {
             clients.addAll(data);
+        }
+        stateCounter = paymentsManager.countStates();
+        long processing = batchService.countProcessingOrders();
+        long paused = batchService.countPausedOrders();
+        started.set(processing > 0);
+        if (canceling.get()) {
+            eta = "CANCELING";
+        } else if (!started.get()) {
+            eta = "NA";
+        } else if (paused == processing) {
+            eta = "PAUSED";
+        } else if (stateCounter != null) {
+            eta = String.valueOf((long) (stateCounter.getRegistered() + stateCounter.getProcessing()) / 12) + " min";
+        }
+        lastPage = (long) stateCounter.getAll() / PAGE_SIZE;
+        if (stateCounter.getAll() % PAGE_SIZE > 0) {
+            lastPage++;
+        }
+        if (currentPage < 0) {
+            currentPage = lastPage;
+        } else if (currentPage > lastPage) {
+            currentPage = 0;
+        }
+        payments = new ArrayList<>(PAGE_SIZE);
+        Set<String> descSort = new HashSet<>();
+        descSort.add("id");
+        List<PaymentRequest> paymentsData = paymentsManager.getPaymentsPage(
+                (int) currentPage, 
+                PAGE_SIZE, 
+                null, 
+                descSort);
+        if (paymentsData != null) {
+            payments.addAll(paymentsData);
         }
     }
 
@@ -125,21 +179,7 @@ public class UserSession {
      * Page refresh timer listener.
      */
     public void timerListener() {
-        stateCounter = paymentsManager.countStates();
-        loadClients();
-        if (canceling.get()) {
-            eta = "CANCELING";
-        } else if (stateCounter != null) {
-            eta = String.valueOf((long) (stateCounter.getRegistered() + stateCounter.getProcessing()) / 12) + " min";
-        }
-        if (!starting.get() && started.get() && stateCounter != null) {
-            if ((stateCounter.getProcessing() <= 0 && stateCounter.getRegistered() <= 0)
-                    || stateCounter.getAll() <= 0) {
-                started.set(false);
-            }
-        } else if (stateCounter == null) {
-            started.set(false);
-        }
+        loadViewData();
     }
 
     /**
@@ -148,6 +188,7 @@ public class UserSession {
     public void cleanData() {
         paymentsManager.removeAll();
         stateCounter = paymentsManager.countStates();
+        loadViewData();
     }
 
     /**
@@ -163,6 +204,7 @@ public class UserSession {
             }
             stateCounter = paymentsManager.countStates();
         }
+        loadViewData();
     }
 
     /**
@@ -187,7 +229,6 @@ public class UserSession {
      * Start example billing processing.
      */
     public void start() {
-        started.set(true);
         starting.set(true);
         commandExecutor.execute(() -> {
             try {
@@ -196,6 +237,7 @@ public class UserSession {
                 starting.set(false);
             }
         });
+        loadViewData();
     }
 
     /**
@@ -208,11 +250,43 @@ public class UserSession {
                 try {
                     batchService.stopAll();
                 } finally {
-                    started.set(false);
                     canceling.set(false);
                 }
             });
         }
+        loadViewData();
+    }
+    
+    /**
+     * Show next payments data page.
+     */
+    public void nextPage() {
+        currentPage++;
+        loadViewData();
+    }
+    
+    /**
+     * Show previous payments data page.
+     */
+    public void prevPage() {
+        currentPage--;
+        loadViewData();
+    }
+    
+    /**
+     * Show first payments data page.
+     */
+    public void firstPage() {
+        currentPage = 0;
+        loadViewData();
+    }
+    
+    /**
+     * Show last payments data page.
+     */
+    public void lastPage() {
+        currentPage = -1;
+        loadViewData();
     }
 
 }
