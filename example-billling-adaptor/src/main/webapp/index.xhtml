@@ -6,7 +6,7 @@
       xmlns:h="http://xmlns.jcp.org/jsf/html"
       xmlns:p="http://primefaces.org/ui">
     <h:head>
-        <title>Test billing adaptor panel</title>
+        <title>Testing panel</title>
         <style>
             .fHeader {
                 text-align: left;
@@ -28,13 +28,28 @@
                 border-style: solid;
                 margin: 10px;
             }
+            .bCommand {
+                width: 140px;
+                margin-left: 10px;
+            }
+            .bLink {
+                margin-left: 10px;
+            }
             .content {
                 max-width: 800px;
                 margin: auto;
             }
-            .bCommand {
-                width: 140px;
-                margin-left: 10px;
+            .subContent {
+                width: 265px;
+                float: left;
+                margin: auto;
+                text-align: center;
+            }
+            .spaceBlock1 {
+                width: 380px;
+                float: left;
+                margin: auto;
+                text-align: center;
             }
         </style>
     </h:head>
@@ -106,6 +121,9 @@
                     <h:outputLabel value="#{indexPageBean.eta}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                 </h:panelGrid>
+                <ui:insert name="headerPaginator">
+                    <ui:include src="paginator.xhtml" />
+                </ui:insert>
                 <ui:repeat value="#{indexPageBean.payments}" var="payment">
                     <h:panelGrid border="0" width="380" 
                                  styleClass="tBlock" headerClass="fHeader"
@@ -146,6 +164,9 @@
                         <h:outputLabel value="#{payment.locker}" styleClass="lRow" />
                     </h:panelGrid>
                 </ui:repeat>
+                <ui:insert name="footerPaginator">
+                    <ui:include src="paginator.xhtml" />
+                </ui:insert>
             </div>
         </h:form>
     </h:body>

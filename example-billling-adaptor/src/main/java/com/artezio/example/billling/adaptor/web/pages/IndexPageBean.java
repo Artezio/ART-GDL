@@ -158,8 +158,8 @@ public class IndexPageBean {
             eta = String.valueOf(min) + " min";
         }
         lastPage = (long) stateCounter.getAll() / PAGE_SIZE;
-        if (stateCounter.getAll() % PAGE_SIZE > 0) {
-            lastPage++;
+        if (!(stateCounter.getAll() % PAGE_SIZE > 0)) {
+            lastPage--;
         }
         if (currentPage < 0) {
             currentPage = lastPage;
@@ -259,7 +259,7 @@ public class IndexPageBean {
     /**
      * Show next payments data page.
      */
-    public void nextPage() {
+    public void goNextPage() {
         currentPage++;
         loadViewData();
     }
@@ -267,7 +267,7 @@ public class IndexPageBean {
     /**
      * Show previous payments data page.
      */
-    public void prevPage() {
+    public void goPreviousPage() {
         currentPage--;
         loadViewData();
     }
@@ -275,7 +275,7 @@ public class IndexPageBean {
     /**
      * Show first payments data page.
      */
-    public void firstPage() {
+    public void goFirstPage() {
         currentPage = 0;
         loadViewData();
     }
@@ -283,7 +283,7 @@ public class IndexPageBean {
     /**
      * Show last payments data page.
      */
-    public void lastPage() {
+    public void goLastPage() {
         currentPage = -1;
         loadViewData();
     }
