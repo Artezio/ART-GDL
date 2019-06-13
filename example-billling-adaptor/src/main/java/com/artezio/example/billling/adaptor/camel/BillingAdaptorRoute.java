@@ -41,7 +41,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
     /**
      * Timeout in milliseconds to emulate long term remote execution.
      */
-    private static final int PRODUCER_TIMEOUT = 5_000;
+    public static final int PRODUCER_TIMEOUT = 5_000;
     /**
      * Billing operations data access object.
      */
@@ -86,14 +86,14 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                     try {
                         Object body = e.getIn().getBody();
                         if (!(body instanceof RecoveryOrder)) {
-                            txt = "Wrong recovery message. Recieved: "
+                            txt = "Recovery message: "
                                     + ((body == null) ? "NULL" : body.getClass().getSimpleName());
                             break main;
                         }
                         RecoveryOrder order = (RecoveryOrder) body;
                         String extId = order.getExternalId();
                         if (extId == null) {
-                            txt = "Wrong recovery message. Extenal ID is NULL.";
+                            txt = "Extenal ID is NULL.";
                             break main;
                         }
                         msg.setExternalId(extId);
@@ -125,7 +125,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 response.setResult(ClientResultEnum.SUCCESS);
                                 break main;
                             case EXPIRED_BY_NUMBER:
-                                txt = "Expired by number of tries limitation.";
+                                txt = "Expired by number of tries.";
                                 payment.setPaymentState(PaymentState.EXPIRED);
                                 response.setResult(ClientResultEnum.SUCCESS);
                                 break main;
@@ -135,7 +135,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 ? payment.getSuccessCount()
                                 : -1;
                         if (count < successCount) {
-                            txt = "Hold by successful count limitation: "
+                            txt = "Try "
                                     + count + " of " + successCount;
                             response.setResult(ClientResultEnum.BUSINESS_ERROR);
                             payment.setPaymentState(PaymentState.PROCESSING);

@@ -125,5 +125,13 @@ public class PaymentsManagement {
     public long count() {
         return daoPayments.count();
     }
- 
+    
+    /**
+     * Count success number of processing tries.
+     *
+     * @return Number of resting processing tries.
+     */
+    public long countSuccessTries() {
+        return daoPayments.countSuccessTries();
+    }
 }

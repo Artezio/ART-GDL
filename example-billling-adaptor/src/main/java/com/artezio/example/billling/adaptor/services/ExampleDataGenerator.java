@@ -95,7 +95,7 @@ public class ExampleDataGenerator {
             request.setProcessingFrom(payment.getProcessingFrom());
             request.setProcessingLimit(payment.getProcessingLimit());
             request.setProcessingTo(payment.getProcessingTo());
-            request.setQueue("client-id-" + String.valueOf(payment.getClient().getId()));
+            request.setQueue("client-id-" + String.valueOf(client.getId()));
             request.setQueueParent(payment.getQueueParent());
             request.setSuccessCount(payment.getSuccessCount());
             daoPayments.save(request);

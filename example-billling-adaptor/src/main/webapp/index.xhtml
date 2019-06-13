@@ -20,6 +20,13 @@
             }
             .tLine {
                 float: left;
+                margin: 10px;
+            }
+            .tBlock {
+                float: left;
+                border-width: 1px;
+                border-style: solid;
+                margin: 10px;
             }
             .content {
                 max-width: 800px;
@@ -27,16 +34,16 @@
             }
             .bCommand {
                 width: 140px;
-                margin-left: 20px;
+                margin-left: 10px;
             }
         </style>
     </h:head>
     <h:body>
         <h:form id="indexView">
-            <p:poll interval="3" update="indexView" listener="#{userSession.timerListener()}" />
+            <p:poll interval="3" update="indexView" listener="#{indexPageBean.timerListener()}" />
             <div class="content">
-                <h:dataTable id="clientList" border="0" width="360" styleClass="tLine"
-                             value="#{userSession.clients}" var="client">
+                <h:dataTable id="clientList" border="0" width="390" styleClass="tLine"
+                             value="#{indexPageBean.clients}" var="client">
                     <h:column headerClass="fHeader">    				
                         <f:facet name="header">First name</f:facet>
                         <h:outputLabel value="#{client.firstName}"/>                    
@@ -48,7 +55,7 @@
                     <h:column headerClass="fHeader">
                         <f:facet name="header">Balance</f:facet>
                         <h:outputLabel value="#{client.account.balance}">
-                            <f:convertNumber pattern="####0.00 cr"/>
+                            <f:convertNumber pattern="#,##0.00 cr" locale="en_US" />
                         </h:outputLabel>
                     </h:column>
                 </h:dataTable>
@@ -56,49 +63,89 @@
                              styleClass="tLine" headerClass="fHeader"
                              columns="3">
                     <h:outputLabel value="REGISTERED" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.registered}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.registered}" styleClass="lRow" />
                     <h:commandButton value="START" styleClass="bCommand" 
-                                     disabled="#{userSession.disableStartButton()}"
-                                     action="#{userSession.start()}" >
+                                     disabled="#{indexPageBean.disableStartButton()}"
+                                     action="#{indexPageBean.start()}" >
                         <f:ajax render="@all" />
                     </h:commandButton>
                     <h:outputLabel value="PROCESSING" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.processing}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.processing}" styleClass="lRow" />
                     <h:commandButton value="STOP" styleClass="bCommand"
-                                     disabled="#{userSession.disableStopButton()}"
-                                     action="#{userSession.stop()}" >
+                                     disabled="#{indexPageBean.disableStopButton()}"
+                                     action="#{indexPageBean.stop()}" >
                         <f:ajax render="@all" />
                     </h:commandButton>
                     <h:outputLabel value="SUCCESS" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.success}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.success}" styleClass="lRow" />
                     <h:commandButton value="CLEAN" styleClass="bCommand" 
-                                     disabled="#{userSession.disableStartButton()}"
-                                     action="#{userSession.cleanData()}">
+                                     disabled="#{indexPageBean.disableStartButton()}"
+                                     action="#{indexPageBean.cleanData()}">
                         <f:ajax render="@all" />
                     </h:commandButton>
                     <h:outputLabel value="EXPIRED" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.expired}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.expired}" styleClass="lRow" />
                     <h:commandButton value="GENERATE" styleClass="bCommand" 
-                                     disabled="#{userSession.disableStartButton()}"
-                                     action="#{userSession.generateData()}" >
+                                     disabled="#{indexPageBean.disableStartButton()}"
+                                     action="#{indexPageBean.generateData()}" >
                         <f:ajax render="@all" />
                     </h:commandButton>
                     <h:outputLabel value="CANCELED" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.canceled}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.canceled}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                     <h:outputLabel value="SYSTEM_ERROR" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.systemError}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.systemError}" styleClass="lRow" />
+                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="____________" styleClass="lHeader" />
+                    <h:outputLabel value=" " styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                     <h:outputLabel value="TOTAL" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.stateCounter.all}" styleClass="lRow" />
-                    <h:outputLabel value=" " styleClass="lRow" />
-                    <h:outputLabel value="____________" styleClass="lRow" />
-                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.stateCounter.all}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                     <h:outputLabel value="ETA" styleClass="lHeader" />
-                    <h:outputLabel value="#{userSession.eta}" styleClass="lRow" />
+                    <h:outputLabel value="#{indexPageBean.eta}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                 </h:panelGrid>
+                <ui:repeat value="#{indexPageBean.payments}" var="payment">
+                    <h:panelGrid border="0" width="380" 
+                                 styleClass="tBlock" headerClass="fHeader"
+                                 columns="2">
+                        <h:outputLabel value="ID:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.id}" styleClass="lRow" />
+                        <h:outputLabel value="Client:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.client.firstName} #{payment.client.lastName}" styleClass="lRow" />
+                        <h:outputLabel value="Type:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.operationType}" styleClass="lRow" />
+                        <h:outputLabel value="State:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.paymentState}" styleClass="lRow" />
+                        <h:outputLabel value="Amount:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.amount}" styleClass="lRow">
+                            <f:convertNumber pattern="#,##0.00 cr" locale="en_US" />
+                        </h:outputLabel> 
+                        <h:outputLabel value="Description:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.description}" styleClass="lRow" />
+                        <h:outputLabel value="Limit #" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.processingLimit}" styleClass="lRow" />
+                        <h:outputLabel value="Success try #" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.successCount}" styleClass="lRow" />
+                        <h:outputLabel value="Queue ID:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.queue}" styleClass="lRow" />
+                        <h:outputLabel value="Parent queue ID:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.queueParent}" styleClass="lRow" />
+                        <h:outputLabel value="Start after:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.processingFrom}" styleClass="lRow">
+                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                        </h:outputLabel> 
+                        <h:outputLabel value="Stop after:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.processingTo}" styleClass="lRow">
+                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                        </h:outputLabel> 
+                        <h:outputLabel value="Pause:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.pause}" styleClass="lRow" />
+                        <h:outputLabel value="Lock ID:" styleClass="lHeader" />
+                        <h:outputLabel value="#{payment.locker}" styleClass="lRow" />
+                    </h:panelGrid>
+                </ui:repeat>
             </div>
         </h:form>
     </h:body>

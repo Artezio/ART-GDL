@@ -47,5 +47,15 @@ public interface IPaymentRequestCrud extends JpaRepository<PaymentRequest, Long>
      */
     @Query("SELECT COUNT(r) FROM PaymentRequest r WHERE r.paymentState = :paymentState")
     long countByState(@Param("paymentState") PaymentState paymentState);
+    
+    /**
+     * Count success number of processing tries.
+     *
+     * @return Number of resting processing tries.
+     */
+    @Query("SELECT SUM(r.successCount) FROM PaymentRequest r WHERE"
+            + " r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.PROCESSING"
+            + " OR r.paymentState = com.artezio.example.billling.adaptor.data.types.PaymentState.REGISTERED")
+    long countSuccessTries();
 
 }

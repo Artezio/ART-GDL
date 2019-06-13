@@ -2,6 +2,7 @@
  */
 package com.artezio.example.billling.adaptor.web.pages;
 
+import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
 import com.artezio.example.billling.adaptor.data.entities.BillingClient;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.services.BatchProcessing;
@@ -38,11 +39,11 @@ public class IndexPageBean {
     /**
      * Test payments generation batch size.
      */
-    public static final int GEN_SIZE = 4;
+    public static final int GEN_SIZE = 40;
     /**
      * Payments data view page size.
      */
-    public static final int PAGE_SIZE = 20;
+    public static final int PAGE_SIZE = 10;
 
     /**
      * Client management service.
@@ -151,7 +152,10 @@ public class IndexPageBean {
         } else if (paused == processing) {
             eta = "PAUSED";
         } else if (stateCounter != null) {
-            eta = String.valueOf((long) (stateCounter.getRegistered() + stateCounter.getProcessing()) / 12) + " min";
+            long mockTimeout = BillingAdaptorRoute.PRODUCER_TIMEOUT;
+            long tries = paymentsManager.countSuccessTries();
+            long min = (tries * mockTimeout) / 60_000;
+            eta = String.valueOf(min) + " min";
         }
         lastPage = (long) stateCounter.getAll() / PAGE_SIZE;
         if (stateCounter.getAll() % PAGE_SIZE > 0) {
@@ -196,13 +200,7 @@ public class IndexPageBean {
      */
     public void generateData() {
         if (stateCounter != null) {
-            for (BillingClient c : clients) {
-                if (c.getId() != null) {
-                    examplePayment.setClient(c);
-                    dataGen.generatePayments(GEN_SIZE, examplePayment);
-                }
-            }
-            stateCounter = paymentsManager.countStates();
+            dataGen.generatePayments(GEN_SIZE, examplePayment);
         }
         loadViewData();
     }
@@ -238,6 +236,7 @@ public class IndexPageBean {
             }
         });
         loadViewData();
+        started.set(true);
     }
 
     /**
