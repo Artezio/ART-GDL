@@ -39,7 +39,7 @@ public class IndexPageBean {
     /**
      * Test payments generation batch size.
      */
-    public static final int GEN_SIZE = 40;
+    public static final int GEN_SIZE = 10;
     /**
      * Payments data view page size.
      */
@@ -134,10 +134,10 @@ public class IndexPageBean {
      * View data loading method.
      */
     public void loadViewData() {
-        clients = new ArrayList<>(1000);
+        clients = new ArrayList<>(10);
         Set<String> ascSort = new HashSet<>();
         ascSort.add("firstName");
-        List<BillingClient> data = clintsManager.getClientPage(0, 1000, ascSort, null);
+        List<BillingClient> data = clintsManager.getClientPage(0, 10, ascSort, null);
         if (data != null) {
             clients.addAll(data);
         }
@@ -170,9 +170,9 @@ public class IndexPageBean {
         Set<String> descSort = new HashSet<>();
         descSort.add("id");
         List<PaymentRequest> paymentsData = paymentsManager.getPaymentsPage(
-                (int) currentPage, 
-                PAGE_SIZE, 
-                null, 
+                (int) currentPage,
+                PAGE_SIZE,
+                null,
                 descSort);
         if (paymentsData != null) {
             payments.addAll(paymentsData);
@@ -255,7 +255,7 @@ public class IndexPageBean {
         }
         loadViewData();
     }
-    
+
     /**
      * Show next payments data page.
      */
@@ -263,7 +263,7 @@ public class IndexPageBean {
         currentPage++;
         loadViewData();
     }
-    
+
     /**
      * Show previous payments data page.
      */
@@ -271,7 +271,7 @@ public class IndexPageBean {
         currentPage--;
         loadViewData();
     }
-    
+
     /**
      * Show first payments data page.
      */
@@ -279,7 +279,7 @@ public class IndexPageBean {
         currentPage = 0;
         loadViewData();
     }
-    
+
     /**
      * Show last payments data page.
      */
@@ -288,4 +288,10 @@ public class IndexPageBean {
         loadViewData();
     }
 
+    public void removeRequest(Long id) {
+        if (id != null) {
+            paymentsManager.remove(id);
+        }
+        loadViewData();
+    }
 }

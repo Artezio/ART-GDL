@@ -34,11 +34,6 @@ public class ClientsManagement {
      */
     @Autowired
     private IBillingClientCrud daoClients;
-    /**
-     * Billing accounts data access object.
-     */
-    @Autowired
-    private IBillingAccountCrud daoAccounts;
 
     /**
      * Get a page of client records.

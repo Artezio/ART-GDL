@@ -1,0 +1,127 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:c="http://xmlns.jcp.org/jsp/jstl/core">
+    <h:head>
+        <title>
+            <c:if test="#{editPageBean.payment.id != null}" >
+                Edit # #{editPageBean.payment.id}
+            </c:if>
+            <c:if test="#{editPageBean.payment.id == null}" >
+                New payment
+            </c:if>
+        </title>
+        <link href="resources/styles.css" rel="stylesheet" type="text/css"/>
+    </h:head>
+    <h:body>
+        <h:form id="editView">
+            <div class="content">
+                <h:panelGrid border="0" width="380" 
+                             styleClass="tBlock" headerClass="fHeader"
+                             columns="2">
+                    <h:outputLabel value="ID:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <c:if test="#{editPageBean.payment.id != null}" >
+                            <h:outputLabel value="#{editPageBean.payment.id}" styleClass="lRow" />
+                        </c:if>
+                        <c:if test="#{editPageBean.payment.id == null}" >
+                            <h:outputLabel value="NEW" styleClass="lRow" />
+                        </c:if>
+                        &nbsp;
+                        <h:commandLink value="save" action="#{editPageBean.savePayment()}" />
+                        &nbsp;
+                        <h:commandLink value="cancel" action="index?faces-redirect=true" immediate="true" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Client:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:selectOneMenu id="fClient"
+                                         value="#{editPageBean.clientId}"
+                                         validatorMessage="Select a client." >
+                            <f:validateRequired/>
+                            <f:selectItems value="#{editPageBean.clients}" var="client"
+                                           itemValue = "#{client.id}"
+                                           itemLabel = "#{client.firstName} #{client.lastName}" />
+                        </h:selectOneMenu>
+                        <br/>
+                        <h:message for="fClient" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Type:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:selectOneMenu id="fType"
+                                         value="#{editPageBean.requestType}"
+                                         validatorMessage="Select an request type." >
+                            <f:validateRequired/>
+                            <f:selectItem itemValue = "ENROLL_PAYMENT" />
+                            <f:selectItem itemValue = "LOCK_ACCOUNT" />
+                            <f:selectItem itemValue = "UNLOCK_ACCOUNT" />
+                        </h:selectOneMenu>
+                        <br/>
+                        <h:message for="fType" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Amount:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fAmount" value="#{editPageBean.payment.amount}"
+                                     validatorMessage="Input currency amount between 0 and 100."
+                                     styleClass="inRow">
+                            <f:validator binding="#{amountValidator}" />
+                        </h:inputText>
+                        <br/>
+                        <h:message for="fAmount" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Limit #" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fLimit" value="#{editPageBean.payment.processingLimit}"
+                                     validatorMessage="Input an integer between 0 and 10."
+                                     styleClass="inRow">
+                            <f:validator binding="#{limitValidator}" />
+                        </h:inputText> 
+                        <br/>
+                        <h:message for="fLimit" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Success try #" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fSuccess" value="#{editPageBean.payment.successCount}"
+                                     validatorMessage="Input an integer between 0 and 10."
+                                     styleClass="inRow">
+                            <f:validator binding="#{limitValidator}" />
+                        </h:inputText> 
+                        <br/>
+                        <h:message for="fSuccess" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Queue ID:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fQueue" value="#{editPageBean.payment.queue}" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Parent queue ID:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fQueueParent" value="#{editPageBean.payment.queueParent}" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Start after:" styleClass="lHeader" />
+                    <h:outputLabel value="" styleClass="lRow">
+                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                    </h:outputLabel> 
+                    <h:outputLabel value="Stop after:" styleClass="lHeader" />
+                    <h:outputLabel value="" styleClass="lRow">
+                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                    </h:outputLabel> 
+                    <h:outputLabel value="Pause:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fPause" value="#{editPageBean.payment.pause}"
+                                     validatorMessage="Example: 1:2; 4:1; 7:3"
+                                     styleClass="inRow">
+                            <f:validateRegex pattern="(?:(?:(\d{1,5})\s*:{1}\s*)(?:(\d{1,15})\s*;?\s*))+" />
+                        </h:inputText> 
+                        <br/>
+                        <h:message for="fPause" styleClass="msgValidate" />
+                    </h:panelGroup>
+                    <h:outputLabel value="Lock ID:" styleClass="lHeader" />
+                    <h:panelGroup>
+                        <h:inputText id="fLock" value="#{editPageBean.payment.locker}" />
+                    </h:panelGroup>
+                </h:panelGrid>
+            </div>
+        </h:form>
+    </h:body>
+</html>

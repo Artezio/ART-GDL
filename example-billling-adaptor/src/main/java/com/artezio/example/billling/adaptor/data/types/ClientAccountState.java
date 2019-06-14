@@ -14,9 +14,9 @@ public enum ClientAccountState {
      */
     NEW,
     /**
-     * Account is open to enroll new operations.
+     * Account is opened to enroll new operations.
      */
-    OPEN,
+    OPENED,
     /**
      * Account is locked.
      */

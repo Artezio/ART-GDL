@@ -149,13 +149,14 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 break;
                             case UNLOCK_ACCOUNT:
                                 msg.setOperationType(BillingOperationType.ACCOUNT_UNLOCKED);
-                                account.setBillingState(ClientAccountState.OPEN);
+                                account.setBillingState(ClientAccountState.OPENED);
                                 txt = "Account have been unlocked.";
                                 break;
                             case ENROLL_PAYMENT:
                                 switch (account.getBillingState()) {
-                                    case OPEN:
+                                    case OPENED:
                                     case NEW:
+                                        account.setBillingState(ClientAccountState.OPENED);
                                         msg.setOperationType(BillingOperationType.PAYMENT_COMMITTED);
                                         BigDecimal paymentAmount = payment.getAmount();
                                         BigDecimal accountAmount = account.getBalance();

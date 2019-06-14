@@ -7,51 +7,7 @@
       xmlns:p="http://primefaces.org/ui">
     <h:head>
         <title>Testing panel</title>
-        <style>
-            .fHeader {
-                text-align: left;
-            }            
-            .lHeader {
-                text-align: left;
-                font-weight: bold;
-            }
-            .lRow {
-                text-align: left;
-            }
-            .tLine {
-                float: left;
-                margin: 10px;
-            }
-            .tBlock {
-                float: left;
-                border-width: 1px;
-                border-style: solid;
-                margin: 10px;
-            }
-            .bCommand {
-                width: 140px;
-                margin-left: 10px;
-            }
-            .bLink {
-                margin-left: 10px;
-            }
-            .content {
-                max-width: 800px;
-                margin: auto;
-            }
-            .subContent {
-                width: 265px;
-                float: left;
-                margin: auto;
-                text-align: center;
-            }
-            .spaceBlock1 {
-                width: 380px;
-                float: left;
-                margin: auto;
-                text-align: center;
-            }
-        </style>
+        <link href="resources/styles.css" rel="stylesheet" type="text/css"/>
     </h:head>
     <h:body>
         <h:form id="indexView">
@@ -60,12 +16,12 @@
                 <h:dataTable id="clientList" border="0" width="390" styleClass="tLine"
                              value="#{indexPageBean.clients}" var="client">
                     <h:column headerClass="fHeader">    				
-                        <f:facet name="header">First name</f:facet>
-                        <h:outputLabel value="#{client.firstName}"/>                    
+                        <f:facet name="header">Client</f:facet>
+                        <h:outputLabel value="#{client.firstName} #{client.lastName}"/>                    
                     </h:column>
                     <h:column headerClass="fHeader">
-                        <f:facet name="header">Last name</f:facet>
-                        <h:outputLabel value="#{client.lastName}"/>                    
+                        <f:facet name="header">State</f:facet>
+                        <h:outputLabel value="#{client.account.billingState}"/>                    
                     </h:column>
                     <h:column headerClass="fHeader">
                         <f:facet name="header">Balance</f:facet>
@@ -100,14 +56,16 @@
                     </h:commandButton>
                     <h:outputLabel value="EXPIRED" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.expired}" styleClass="lRow" />
-                    <h:commandButton value="GENERATE" styleClass="bCommand" 
+                    <h:commandButton value="GENERATE PAGE" styleClass="bCommand" 
                                      disabled="#{indexPageBean.disableStartButton()}"
                                      action="#{indexPageBean.generateData()}" >
                         <f:ajax render="@all" />
                     </h:commandButton>
                     <h:outputLabel value="CANCELED" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.canceled}" styleClass="lRow" />
-                    <h:outputLabel value=" " styleClass="lRow" />
+                    <h:commandButton value="APPEND ONE" styleClass="bCommand" 
+                                     disabled="#{indexPageBean.disableStartButton()}"
+                                     action="#{editPageBean.editPayment(null)}" />
                     <h:outputLabel value="SYSTEM_ERROR" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.systemError}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
@@ -129,7 +87,13 @@
                                  styleClass="tBlock" headerClass="fHeader"
                                  columns="2">
                         <h:outputLabel value="ID:" styleClass="lHeader" />
-                        <h:outputLabel value="#{payment.id}" styleClass="lRow" />
+                        <h:panelGroup>
+                            <h:outputLabel value="#{payment.id}" styleClass="lRow" />
+                            &nbsp;
+                            <h:commandLink value="edit" action="#{editPageBean.editPayment(payment)}" />
+                            &nbsp;
+                            <h:commandLink value="remove" action="#{indexPageBean.removeRequest(payment.id)}" />
+                        </h:panelGroup>
                         <h:outputLabel value="Client:" styleClass="lHeader" />
                         <h:outputLabel value="#{payment.client.firstName} #{payment.client.lastName}" styleClass="lRow" />
                         <h:outputLabel value="Type:" styleClass="lHeader" />
@@ -167,6 +131,9 @@
                 <ui:insert name="footerPaginator">
                     <ui:include src="paginator.xhtml" />
                 </ui:insert>
+                <p:dialog widgetVar="editDialog" modal="true" closable="false"
+                          width="420" >
+                </p:dialog>
             </div>
         </h:form>
     </h:body>

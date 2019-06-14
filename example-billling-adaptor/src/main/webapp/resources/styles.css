@@ -1,0 +1,60 @@
+/* 
+    Created on : Jun 14, 2019, 1:04:47 PM
+    Author     : Olesia Shuliaeva <os.netbox@gmail.com>
+*/
+
+.fHeader {
+    text-align: left;
+}            
+
+.lHeader {
+    text-align: left;
+    font-weight: bold;
+}
+
+.lRow {
+    text-align: left;
+}
+
+.tLine {
+    float: left;
+    margin: 10px;
+}
+
+.tBlock {
+    float: left;
+    border-width: 1px;
+    border-style: solid;
+    margin: 10px;
+}
+
+.bCommand {
+    width: 140px;
+    margin-left: 10px;
+}
+
+.bLink {
+    margin-left: 10px;
+}
+
+.content {
+    max-width: 800px;
+    margin: auto;
+}
+
+.subContent {
+    width: 265px;
+    float: left;
+    margin: auto;
+    text-align: center;
+}
+
+.msgValidate {
+    color: red;
+}
+
+.inRow {
+    text-align: left;
+    width: 200px;
+}
+
