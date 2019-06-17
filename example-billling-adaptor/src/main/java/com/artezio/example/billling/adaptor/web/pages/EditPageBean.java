@@ -39,6 +39,11 @@ public class EditPageBean {
      */
     @Autowired
     private ClientsManagement clintsManager;
+    /**
+     * Index page access session bean.
+     */
+    @Autowired
+    private IndexPageBean indexPage;
 
     /**
      * Current payment request.
@@ -125,6 +130,20 @@ public class EditPageBean {
             this.payment.setOperationType(PaymentOperationType.valueOf(requestType));
             paymentsManager.save(payment);
         }
+        indexPage.loadViewData();
         return "index?faces-redirect=true";
+    }
+
+    /**
+     * Set default queue ID.
+     */
+    public void syncQueue() {
+        BillingClient client = clients.stream()
+                .filter(c -> clientId.equals(c.getId()))
+                .findAny()
+                .orElse(null);
+        if (client != null) {
+            this.payment.setQueue("client-id-" + String.valueOf(client.getId()));
+        }
     }
 }

@@ -116,11 +116,11 @@
                         <h:outputLabel value="#{payment.queueParent}" styleClass="lRow" />
                         <h:outputLabel value="Start after:" styleClass="lHeader" />
                         <h:outputLabel value="#{payment.processingFrom}" styleClass="lRow">
-                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                            <f:converter binding="#{dateConverter}" />
                         </h:outputLabel> 
                         <h:outputLabel value="Stop after:" styleClass="lHeader" />
                         <h:outputLabel value="#{payment.processingTo}" styleClass="lRow">
-                            <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
+                            <f:converter binding="#{dateConverter}" />
                         </h:outputLabel> 
                         <h:outputLabel value="Pause:" styleClass="lHeader" />
                         <h:outputLabel value="#{payment.pause}" styleClass="lRow" />

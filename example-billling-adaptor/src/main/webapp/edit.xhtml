@@ -36,20 +36,21 @@
                     </h:panelGroup>
                     <h:outputLabel value="Client:" styleClass="lHeader" />
                     <h:panelGroup>
-                        <h:selectOneMenu id="fClient"
+                        <h:selectOneMenu id="fClient" styleClass="inRow"
                                          value="#{editPageBean.clientId}"
                                          validatorMessage="Select a client." >
                             <f:validateRequired/>
                             <f:selectItems value="#{editPageBean.clients}" var="client"
                                            itemValue = "#{client.id}"
-                                           itemLabel = "#{client.firstName} #{client.lastName}" />
+                                           itemLabel = "#{client.firstName} #{client.lastName} (id=#{client.id})" />
+                            <f:ajax listener="#{editPageBean.syncQueue()}" render="fQueue" />
                         </h:selectOneMenu>
                         <br/>
                         <h:message for="fClient" styleClass="msgValidate" />
                     </h:panelGroup>
                     <h:outputLabel value="Type:" styleClass="lHeader" />
                     <h:panelGroup>
-                        <h:selectOneMenu id="fType"
+                        <h:selectOneMenu id="fType" styleClass="inRow"
                                          value="#{editPageBean.requestType}"
                                          validatorMessage="Select an request type." >
                             <f:validateRequired/>
@@ -63,7 +64,7 @@
                     <h:outputLabel value="Amount:" styleClass="lHeader" />
                     <h:panelGroup>
                         <h:inputText id="fAmount" value="#{editPageBean.payment.amount}"
-                                     validatorMessage="Input currency amount between 0 and 100."
+                                     validatorMessage="Inpit from 0.00 to 100.00"
                                      styleClass="inRow">
                             <f:validator binding="#{amountValidator}" />
                         </h:inputText>
@@ -73,7 +74,7 @@
                     <h:outputLabel value="Limit #" styleClass="lHeader" />
                     <h:panelGroup>
                         <h:inputText id="fLimit" value="#{editPageBean.payment.processingLimit}"
-                                     validatorMessage="Input an integer between 0 and 10."
+                                     validatorMessage="Input from 0 to 10"
                                      styleClass="inRow">
                             <f:validator binding="#{limitValidator}" />
                         </h:inputText> 
@@ -83,7 +84,7 @@
                     <h:outputLabel value="Success try #" styleClass="lHeader" />
                     <h:panelGroup>
                         <h:inputText id="fSuccess" value="#{editPageBean.payment.successCount}"
-                                     validatorMessage="Input an integer between 0 and 10."
+                                     validatorMessage="Input from 0 to 10"
                                      styleClass="inRow">
                             <f:validator binding="#{limitValidator}" />
                         </h:inputText> 
@@ -92,33 +93,49 @@
                     </h:panelGroup>
                     <h:outputLabel value="Queue ID:" styleClass="lHeader" />
                     <h:panelGroup>
-                        <h:inputText id="fQueue" value="#{editPageBean.payment.queue}" />
+                        <h:inputText id="fQueue" 
+                                     value="#{editPageBean.payment.queue}" 
+                                     styleClass="inRow" />
                     </h:panelGroup>
                     <h:outputLabel value="Parent queue ID:" styleClass="lHeader" />
                     <h:panelGroup>
-                        <h:inputText id="fQueueParent" value="#{editPageBean.payment.queueParent}" />
+                        <h:inputText id="fQueueParent" value="#{editPageBean.payment.queueParent}" styleClass="inRow" />
                     </h:panelGroup>
                     <h:outputLabel value="Start after:" styleClass="lHeader" />
-                    <h:outputLabel value="" styleClass="lRow">
-                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
-                    </h:outputLabel> 
+                    <h:panelGroup>
+                        <h:inputText id="fStart" value="#{editPageBean.payment.processingFrom}"
+                                     validatorMessage="Format: dd.MM.yyyy HH:mm"
+                                     styleClass="inRow">
+                            <f:converter binding="#{dateConverter}" />
+                        </h:inputText> 
+                        <br/>
+                        <h:message for="fStart" styleClass="msgValidate" />
+                    </h:panelGroup>
                     <h:outputLabel value="Stop after:" styleClass="lHeader" />
-                    <h:outputLabel value="" styleClass="lRow">
-                        <f:convertDateTime pattern="dd.MM.yyyy HH:mm" />
-                    </h:outputLabel> 
+                    <h:panelGroup>
+                        <h:inputText id="fStop" value="#{editPageBean.payment.processingTo}"
+                                     validatorMessage="Format: dd.MM.yyyy HH:mm"
+                                     styleClass="inRow">
+                            <f:converter binding="#{dateConverter}" />
+                        </h:inputText> 
+                        <br/>
+                        <h:message for="fStop" styleClass="msgValidate" />
+                    </h:panelGroup>
                     <h:outputLabel value="Pause:" styleClass="lHeader" />
                     <h:panelGroup>
                         <h:inputText id="fPause" value="#{editPageBean.payment.pause}"
                                      validatorMessage="Example: 1:2; 4:1; 7:3"
                                      styleClass="inRow">
-                            <f:validateRegex pattern="(?:(?:(\d{1,5})\s*:{1}\s*)(?:(\d{1,15})\s*;?\s*))+" />
+                            <f:validateRegex pattern="(?:(?:(\d{1,5})\s*:{1}\s*)(?:(\d{1,15})\s*;?\s*))*" />
                         </h:inputText> 
                         <br/>
                         <h:message for="fPause" styleClass="msgValidate" />
                     </h:panelGroup>
                     <h:outputLabel value="Lock ID:" styleClass="lHeader" />
                     <h:panelGroup>
-                        <h:inputText id="fLock" value="#{editPageBean.payment.locker}" />
+                        <h:inputText id="fLock" 
+                                     value="#{editPageBean.payment.locker}" 
+                                     styleClass="inRow" />
                     </h:panelGroup>
                 </h:panelGrid>
             </div>

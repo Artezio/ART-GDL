@@ -83,8 +83,13 @@ public class StoringProcessor implements Processor {
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
         }
-        if (request.getPause() != null && !PauseConfig.checkRule(request.getPause())) {
-            logMsg.append(": Wrong pause rule format. Pause rule pattern: ");
+        String pauseRule = request.getPause() != null
+                ? request.getPause().replaceAll("\\s+", "")
+                : "";
+        if (!(pauseRule.isEmpty() || PauseConfig.checkRule(pauseRule))) {
+            logMsg.append(": Wrong pause rule (");
+            logMsg.append(pauseRule);
+            logMsg.append(") format. Pause rule pattern: ");
             logMsg.append(PauseConfig.PAUSE_RULE_REGEX);
             RecoveryException r = new RecoveryException(logMsg.toString());
             throw r;
@@ -105,7 +110,7 @@ public class StoringProcessor implements Processor {
         order.setOrderModified(now);
         order.setOrderOpened(now);
         order.setOrderUpdated(now);
-        order.setPause(request.getPause());
+        order.setPause(pauseRule.isEmpty() ? null : pauseRule);
         order.setProcessingCount(0);
         order.setProcessingFrom(request.getProcessingFrom());
         order.setProcessingLimit(request.getProcessingLimit());

@@ -83,7 +83,7 @@ public class PaymentRequest implements Serializable {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private PaymentState paymentState;
-    @Column(length = 128)
+    @Column(length = 4000)
     private String description;
     
 }

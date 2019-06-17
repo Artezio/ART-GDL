@@ -147,7 +147,7 @@ public class BatchProcessing {
         request.setProcessingFrom(payment.getProcessingFrom());
         request.setProcessingLimit(payment.getProcessingLimit());
         request.setProcessingTo(payment.getProcessingTo());
-        request.setQueue(payment.getQueue());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
         request.setQueueParent(payment.getQueueParent());
         producer.sendBody(request);
     }
