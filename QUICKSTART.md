@@ -18,13 +18,10 @@ To run this quickstart, you need the following prerequisites:
 Set the project main directory and run:
 `mvn clean install`
 
-# Step 3a. Run with Maven
+# Step 3. Run with Maven
 Set subdirectory **example-billling-adaptor** and run:
 
 `mvn spring-boot:run`
-
-# Step 3b. Run with pure Java
-`java -jar example-billing-adaptor-1.0.0.war`
 
 # Step 4. View the example console
 Use your browser and open <http://localhost:8088/>

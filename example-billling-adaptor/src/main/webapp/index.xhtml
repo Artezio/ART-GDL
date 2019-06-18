@@ -36,6 +36,7 @@
                     <h:outputLabel value="REGISTERED" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.registered}" styleClass="lRow" />
                     <h:commandButton value="START" styleClass="bCommand" 
+                                     title="start billing processing"
                                      disabled="#{indexPageBean.disableStartButton()}"
                                      action="#{indexPageBean.start()}" >
                         <f:ajax render="@all" />
@@ -43,6 +44,7 @@
                     <h:outputLabel value="PROCESSING" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.processing}" styleClass="lRow" />
                     <h:commandButton value="STOP" styleClass="bCommand"
+                                     title="stop billing processing"
                                      disabled="#{indexPageBean.disableStopButton()}"
                                      action="#{indexPageBean.stop()}" >
                         <f:ajax render="@all" />
@@ -50,6 +52,7 @@
                     <h:outputLabel value="SUCCESS" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.success}" styleClass="lRow" />
                     <h:commandButton value="CLEAN" styleClass="bCommand" 
+                                     title="clean all payment requests"
                                      disabled="#{indexPageBean.disableStartButton()}"
                                      action="#{indexPageBean.cleanData()}">
                         <f:ajax render="@all" />
@@ -57,6 +60,7 @@
                     <h:outputLabel value="EXPIRED" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.expired}" styleClass="lRow" />
                     <h:commandButton value="GENERATE PAGE" styleClass="bCommand" 
+                                     title="generate a page of random payment requests"
                                      disabled="#{indexPageBean.disableStartButton()}"
                                      action="#{indexPageBean.generateData()}" >
                         <f:ajax render="@all" />
@@ -64,6 +68,7 @@
                     <h:outputLabel value="CANCELED" styleClass="lHeader" />
                     <h:outputLabel value="#{indexPageBean.stateCounter.canceled}" styleClass="lRow" />
                     <h:commandButton value="APPEND ONE" styleClass="bCommand" 
+                                     title="create and edit new payment request"
                                      disabled="#{indexPageBean.disableStartButton()}"
                                      action="#{editPageBean.editPayment(null)}" />
                     <h:outputLabel value="SYSTEM_ERROR" styleClass="lHeader" />
