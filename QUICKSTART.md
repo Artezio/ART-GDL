@@ -28,3 +28,4 @@ Use your browser and open <http://localhost:8088/>
 
 # Step 5. Start example
 When you are opened the example first time some example data is generated. And you already can start the example with that data preset. Just press the button **START**
+
