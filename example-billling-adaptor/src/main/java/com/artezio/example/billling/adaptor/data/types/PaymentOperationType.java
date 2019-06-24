@@ -10,11 +10,11 @@ package com.artezio.example.billling.adaptor.data.types;
 public enum PaymentOperationType {
     
     /**
-     * Lock an client account.
+     * Lock the client account.
      */
     LOCK_ACCOUNT,
     /**
-     * Unlock an client account.
+     * Unlock the client account.
      */
     UNLOCK_ACCOUNT,
     /**
