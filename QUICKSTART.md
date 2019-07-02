@@ -12,7 +12,7 @@ To run this quickstart, you need the following prerequisites:
 - GIT 2.22.0 or greater.
 
 # Step 1. Download sources
-`git clone https://vcs.artezio.com/git/ART-GDL`
+`git clone https://github.com/Artezio/ART-GDL.git`
 
 # Step 2. Compile sources
 Set the project main directory and run:
