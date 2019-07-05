@@ -44,6 +44,11 @@ You find list of RecoveryRequest properties, usable links and the library Spring
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>recovery-server</artifactId>
+            <version>1.0.0</version>
+        </dependency>
 ...
 ```
 
