@@ -120,7 +120,7 @@ public class RecoveryRoutes extends SpringRouteBuilder {
      * @throws Exception @see Exception
      */
     @Override
-    public void configure() throws Exception {
+        public void configure() throws Exception {
         // Initializing data access.
         dao.count();
         // Define income route.

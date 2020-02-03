@@ -22,7 +22,10 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -37,6 +40,21 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
         classes = RecoveryServerApplication.class,
         properties = {
             "logging.level.org.hibernate.SQL=INFO"
+        }
+)
+@ComponentScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EntityScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EnableJpaRepositories(
+        basePackages = {
+                "com.artezio.recovery.server"
         }
 )
 @MockEndpoints

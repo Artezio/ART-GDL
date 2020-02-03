@@ -2,3 +2,5 @@
 /recovery-server/recovery.mv.db
 /recovery-server/target/
 /example-billling-adaptor/target/
+.idea
+*.iml

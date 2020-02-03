@@ -21,7 +21,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -37,6 +40,21 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
         properties = {
             "com.artezio.recovery.seda.consumers=20",
             "spring.datasource.hikari.maximumPoolSize=20"
+        }
+)
+@ComponentScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EntityScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EnableJpaRepositories(
+        basePackages = {
+                "com.artezio.recovery.server"
         }
 )
 @MockEndpoints
@@ -130,7 +148,7 @@ public class MassLoadingSimpleTest {
             DefaultTransactionDefinition def = new DefaultTransactionDefinition();
             def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
             TransactionStatus status = transactionManager.getTransaction(def);
-            producer.sendBody(req);
+                producer.sendBody(req);
             transactionManager.commit(status);
         }
         Thread.sleep(ENDPOINT_TIMEOUT);
