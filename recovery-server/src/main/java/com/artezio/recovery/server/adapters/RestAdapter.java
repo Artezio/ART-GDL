@@ -22,48 +22,53 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
 
-  /**
-   * REST route ID.
-   */
-  private static final String REST_ROUTE_ID = "processPostRequest";
+    /**
+     * POST endpoint ID.
+     */
+    private static final String POST_ENDPOINT_ID = "postEndpoint";
 
-  /**
-   * REST route URL.
-   */
-  public static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
+    /**
+     * REST route ID.
+     */
+    private static final String REST_ROUTE_ID = "processPostRequest";
 
-  /**
-   * Data access object.
-   */
-  @Autowired
-  private IRecoveryOrderCrud dao;
+    /**
+     * REST route URL.
+     */
+    public static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
 
-  /**
-   * Server URL property.
-   */
-  @Value("${com.artezio.recovery.server.from.host:localhost}")
-  private String serverHost;
+    /**
+     * Data access object.
+     */
+    @Autowired
+    private IRecoveryOrderCrud dao;
 
-  /**
-   * Server port property.
-   */
-  @Value("${com.artezio.recovery.server.port:8080}")
-  private String serverPort;
+    /**
+     * Server URL property.
+     */
+    @Value("${com.artezio.recovery.server.from.host:localhost}")
+    private String serverHost;
 
-  @Override
-  public void configure() {
+    /**
+     * Server port property.
+     */
+    @Value("${com.artezio.recovery.server.port:8080}")
+    private String serverPort;
 
-    restConfiguration()
-        .component("restlet")
-        .host(serverHost).port(serverPort);
+    @Override
+    public void configure() {
 
-    rest()
-        .post("/recover").to(REST_ROUTE_URL);
+        restConfiguration()
+            .component("restlet")
+            .host(serverHost).port(serverPort);
 
-    from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
-        .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-        .unmarshal().json(JsonLibrary.Jackson, RecoveryRequest.class)
-        .to("log:com.artezio.recovery?level=DEBUG")
-        .to(RecoveryRoutes.INCOME_URL);
-  }
+        rest()
+            .post("/recover").id(POST_ENDPOINT_ID).to(REST_ROUTE_URL);
+
+        from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
+            .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
+            .unmarshal().json(JsonLibrary.Jackson, RecoveryRequest.class)
+            .to("log:com.artezio.recovery?level=DEBUG")
+            .to(RecoveryRoutes.INCOME_URL);
+    }
 }
