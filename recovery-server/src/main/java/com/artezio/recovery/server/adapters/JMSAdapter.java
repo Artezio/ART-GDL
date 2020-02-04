@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Slf4j
-public class JMSAdapter extends SpringRouteBuilder {
+public class JMSAdapter extends SpringRouteBuilder implements BaseAdapter  {
 
     /**
      * JMS Point to Point Route ID.

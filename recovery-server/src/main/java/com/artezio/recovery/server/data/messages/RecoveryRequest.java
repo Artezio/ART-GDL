@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.util.Date;
 import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Recovery request data structure for DB storing.
@@ -27,6 +28,7 @@ import lombok.Data;
  */
 @Data
 @XmlRootElement
+@ToString
 public class RecoveryRequest implements Serializable {
 
     private String callbackUri;
