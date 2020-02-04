@@ -7,9 +7,12 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.server.adapters.JMSAdapter;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
+
+import com.artezio.recovery.server.data.types.DeliveryMethods;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -55,8 +58,15 @@ public class BatchProcessing {
      * Recovery request income route producer.
      */
     @Produce(uri = RecoveryRoutes.INCOME_URL)
-    private ProducerTemplate producer;
-    
+    private ProducerTemplate directProducer;
+
+    /**
+     * Recovery request income route producer.
+     */
+    @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
+    private ProducerTemplate jmsProducer;
+
+
     /**
      * Count all processing recovery orders.
      * 
@@ -102,7 +112,7 @@ public class BatchProcessing {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
-    public void startAll() {
+    public void startAll(DeliveryMethods deliveryMethodType) {
         if (!camel.getStatus().isStarted()) {
             return;
         }
@@ -111,7 +121,7 @@ public class BatchProcessing {
         while (page.hasContent()) {
             for (PaymentRequest payment : page) {
                 try {
-                    startRequest(payment);
+                    startRequest(payment, deliveryMethodType);
                 } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
@@ -132,7 +142,7 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment) {
+    public void startRequest(PaymentRequest payment, DeliveryMethods deliveryMethodType) {
         if (payment == null) {
             return;
         }
@@ -149,6 +159,16 @@ public class BatchProcessing {
         request.setProcessingTo(payment.getProcessingTo());
         request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
         request.setQueueParent(payment.getQueueParent());
-        producer.sendBody(request);
+        sendRequest(request, deliveryMethodType);
+    }
+
+    private void sendRequest(RecoveryRequest request, DeliveryMethods deliveryMethodType) {
+        switch (deliveryMethodType) {
+            case DIRECT:
+                directProducer.sendBody(request);
+            case JMS:
+                jmsProducer.sendBody(request);
+            case HTTP:
+        }
     }
 }

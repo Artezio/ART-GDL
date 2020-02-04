@@ -10,16 +10,17 @@ import com.artezio.example.billling.adaptor.services.ClientsManagement;
 import com.artezio.example.billling.adaptor.services.ExampleDataGenerator;
 import com.artezio.example.billling.adaptor.services.PaymentsManagement;
 import com.artezio.example.billling.adaptor.services.types.PaymentStateCounter;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
+
+import com.artezio.recovery.server.data.types.DeliveryMethods;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -70,6 +71,7 @@ public class IndexPageBean {
      */
     @Getter
     private List<BillingClient> clients;
+
     /**
      * Payments request list.
      */
@@ -83,6 +85,14 @@ public class IndexPageBean {
     /**
      * Processing ETA message.
      */
+
+    @Getter
+    private Map<String,DeliveryMethods> messageDeliveryMethodTypes;
+
+    @Getter
+    @Setter
+    private DeliveryMethods selectedChannel;
+
     @Getter
     private String eta;
     /**
@@ -124,6 +134,7 @@ public class IndexPageBean {
         log.info("User session created.");
         dataGen.generateClientsIfEmpty();
         examplePayment.setSuccessCount(5);
+        initDataStructures();
         loadViewData();
         if (stateCounter != null && stateCounter.getAll() <= 0) {
             generateData();
@@ -205,6 +216,13 @@ public class IndexPageBean {
         loadViewData();
     }
 
+    private void initDataStructures() {
+        messageDeliveryMethodTypes = new LinkedHashMap<String, DeliveryMethods>();
+        messageDeliveryMethodTypes.put("Direct Channel", DeliveryMethods.DIRECT); //label, value
+        messageDeliveryMethodTypes.put("JMS Channel", DeliveryMethods.JMS);
+        messageDeliveryMethodTypes.put("HTTP Channel", DeliveryMethods.HTTP);
+    }
+
     /**
      * Disable start button flag.
      *
@@ -230,7 +248,7 @@ public class IndexPageBean {
         starting.set(true);
         commandExecutor.execute(() -> {
             try {
-                batchService.startAll();
+                batchService.startAll(selectedChannel);
             } finally {
                 starting.set(false);
             }
