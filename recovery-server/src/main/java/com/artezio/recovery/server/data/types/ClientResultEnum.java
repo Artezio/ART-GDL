@@ -28,6 +28,6 @@ public enum ClientResultEnum {
     /**
      * Fatal business error. Recovery processing should be interrupted.
      */
-    BUSINESS_FATAL_ERROR;
+    BUSINESS_FATAL_ERROR
     
 }

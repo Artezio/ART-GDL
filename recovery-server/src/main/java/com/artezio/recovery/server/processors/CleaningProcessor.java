@@ -1,8 +1,6 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -29,7 +27,7 @@ public class CleaningProcessor implements Processor {
      * Data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud dao;
+    private RecoveryOrderRepository repository;
     
     /**
      *  Property of flag to allow successfully processed orders cleaning.
@@ -52,10 +50,10 @@ public class CleaningProcessor implements Processor {
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     public void process(Exchange exchange) throws Exception {
         if (cleaningSuccess) {
-            dao.cleanSuccessOrders();
+            repository.cleanSuccessOrders();
         }
         if (cleaningError) {
-            dao.cleanErrorOrders();
+            repository.cleanErrorOrders();
         }
     }
 

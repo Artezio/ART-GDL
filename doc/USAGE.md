@@ -131,7 +131,7 @@ Amount of SEDA concurrent consumers property. Default: 10
 
 Schedule cleaning period property. Apache Camel time unit.(see Apache Camel Timer component). Default: 15m
 
-- com.artezio.recovery.schedule.enebled
+- com.artezio.recovery.schedule.enabled
 
 Property of flag to schedule processing. Boolean. Default: true
 

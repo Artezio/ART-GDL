@@ -108,8 +108,8 @@
                         <exclude>**/ProcessingDelayByDateTest.java</exclude>
                         <exclude>**/ProcessingDelayByPauseTest.java</exclude>
                         <exclude>**/ProcessingQueueTest.java</exclude>
-                        <exclude>**/ExpieredByDateTest.java</exclude>
-                        <exclude>**/ExpieredByNumberTest.java</exclude>
+                        <exclude>**/ExpiredByDateTest.java</exclude>
+                        <exclude>**/ExpiredByNumberTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

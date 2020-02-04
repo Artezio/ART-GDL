@@ -1,0 +1,45 @@
+/*
+ */
+package com.artezio.recovery.server.data.model;
+
+import java.io.Serializable;
+import java.util.Date;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
+import lombok.ToString;
+
+/**
+ * Recovery request data structure for DB storing.
+ * <pre>
+ * Fields:
+ *  callbackUri (string) Callback route URI.
+ *  externalId (string) External message ID.
+ *  locker (string) External code to lock new data storing if it exists.
+ *  message (string) Short specific recovery data.
+ *  pause (string) Recovery processing pause rule.
+ *  processingFrom (date) Date to start redelivery processing.
+ *  processingLimit (number) Limit of redelivery tries.
+ *  processingTo (date) Date to interrupt redelivery processing.
+ *  queue (string) Code to specify redelivery queue.
+ *  queueParent (string) Code to specify parent redelivery queue.
+ * </pre>
+ *
+ * @author Olesia Shuliaeva <os.netbox@gmail.com>
+ */
+@Data
+@XmlRootElement
+@ToString
+public class RecoveryRequest implements Serializable {
+
+    private String callbackUri;
+    private String externalId;
+    private String locker;
+    private String message;
+    private String pause;
+    private Date processingFrom;
+    private Integer processingLimit;
+    private Date processingTo;
+    private String queue;
+    private String queueParent;
+
+}

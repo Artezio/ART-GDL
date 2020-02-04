@@ -1,12 +1,13 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+
 import java.util.Date;
 import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class RestoringProcessor implements Processor {
      * Data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud dao;
+    private RecoveryOrderRepository repository;
 
     /**
      * Recovery request restoring process definition.
@@ -46,22 +47,14 @@ public class RestoringProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         RecoveryOrder order;
         Page<RecoveryOrder> page;
-        search:
-        {
-            page = dao.findNewOrders(PageRequest.of(0, 1), new Date());
+        page = repository.findNewOrders(PageRequest.of(0, 1), new Date());
+        order = lockOrder(page);
+        if (order == null) {
+            page = repository.findProcessingOrders(PageRequest.of(0, 1), new Date());
             order = lockOrder(page);
-            if (order != null) {
-                break search;
-            }
-            page = dao.findProcessingOrders(PageRequest.of(0, 1), new Date());
-            order = lockOrder(page);
-            if (order != null) {
-                break search;
-            }
-            page = dao.findQueuedOrders(PageRequest.of(0, 1), new Date());
-            order = lockOrder(page);
-            if (order != null) {
-                break search;
+            if (order == null) {
+                page = repository.findQueuedOrders(PageRequest.of(0, 1), new Date());
+                order = lockOrder(page);
             }
         }
         exchange.getIn().setBody(order);
@@ -82,19 +75,13 @@ public class RestoringProcessor implements Processor {
             order.setVersionId(UUID.randomUUID().toString());
             int updated = 0;
             try {
-                updated = dao.updateVersion(
-                        order.getId(),
-                        order.getVersionId(),
-                        new Date());
+                updated = repository.updateVersion(order.getId(), order.getVersionId(), new Date());
             } catch (Throwable t) {
-                log.trace(t.getClass().getSimpleName() 
-                        + ": "
-                        + t.getMessage());
+                log.trace(t.getClass().getSimpleName() + ": " + t.getMessage());
             } finally {
                 order = (updated > 0) ? order : null;
             }
         }
         return order;
     }
-
 }

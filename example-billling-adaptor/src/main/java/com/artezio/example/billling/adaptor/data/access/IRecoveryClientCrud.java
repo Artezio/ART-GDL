@@ -2,7 +2,7 @@
  */
 package com.artezio.example.billling.adaptor.data.access;
 
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;

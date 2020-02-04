@@ -1,10 +1,11 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+
 import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +26,15 @@ import org.springframework.transaction.annotation.Transactional;
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Slf4j
 public class ResumingProcessor implements Processor {
-    
+
     /**
      * Data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud dao;
-    
+    private RecoveryOrderRepository repository;
+
     /**
-     *  Property of resuming timeout in minutes.
+     * Property of resuming timeout in minutes.
      */
     @Value("${com.artezio.recovery.resuming.timeout.minutes:10}")
     private int resumingMin;
@@ -49,7 +50,7 @@ public class ResumingProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         Date resumingDate = new Date(System.currentTimeMillis() - resumingMin * 60_000);
         log.trace(resumingDate.toString());
-        dao.resumeOrders(resumingDate);
+        repository.resumeOrders(resumingDate);
     }
 
 }

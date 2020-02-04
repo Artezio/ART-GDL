@@ -7,10 +7,10 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.server.adapters.JMSAdapter;
-import com.artezio.recovery.server.adapters.RestAdapter;
-import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.routes.adapters.JMSAdapter;
+import com.artezio.recovery.server.routes.adapters.RestAdapter;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
 
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
@@ -45,12 +45,6 @@ public class BatchProcessing {
     private static final int PAGE_SIZE = 1000;
 
     /**
-     * Server host property.
-     */
-    @Value("${com.artezio.recovery.server.host:localhost}")
-    private String serverHost;
-
-    /**
      * Current Apache Camel context.
      */
     @Autowired
@@ -68,7 +62,7 @@ public class BatchProcessing {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = RecoveryRoutes.INCOME_URL)
+    @Produce(uri = RecoveryRoute.INCOME_URL)
     private ProducerTemplate directProducer;
 
     /**
@@ -107,10 +101,10 @@ public class BatchProcessing {
      */
     public void stopAll() {
         try {
-            camel.stopRoute(RecoveryRoutes.INCOME_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoutes.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoutes.TIMER_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoutes.SEDA_ID, 5, TimeUnit.SECONDS);
+            camel.stopRoute(RecoveryRoute.INCOME_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoute.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoute.TIMER_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoute.SEDA_ID, 5, TimeUnit.SECONDS);
             camel.stop();
             daoRecovery.deleteAll();
             daoPayments.cancelProcessing();

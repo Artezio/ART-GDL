@@ -19,9 +19,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
-import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -66,7 +66,7 @@ public class RestAdapterTest {
      * Data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud dao;
+    private RecoveryOrderRepository dao;
 
     /**
      * Recovery request income route producer.

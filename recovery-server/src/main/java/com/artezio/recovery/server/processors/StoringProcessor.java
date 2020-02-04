@@ -1,14 +1,12 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
-import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
-import com.artezio.recovery.server.data.types.PauseConfig;
+import com.artezio.recovery.server.config.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
-import com.artezio.recovery.server.data.exceptions.RecoveryException;
+import com.artezio.recovery.server.data.exception.RecoveryException;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
 import java.util.UUID;
@@ -37,7 +35,7 @@ public class StoringProcessor implements Processor {
      * Data access object.
      */
     @Autowired
-    private IRecoveryOrderCrud dao;
+    private RecoveryOrderRepository repository;
 
     /**
      * Recovery request storing process definition.
@@ -48,22 +46,20 @@ public class StoringProcessor implements Processor {
     @Override
     @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.MANDATORY)
     public void process(Exchange exchange) throws Exception {
-        StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
+        StringBuilder logMessage = new StringBuilder(exchange.getExchangeId());
         Object exBody = exchange.getIn().getBody();
         if (exBody instanceof RecoveryRequest) {
             RecoveryRequest request = (RecoveryRequest) exBody;
-            RecoveryOrder newOrder = makeNewOrder(exchange, request);
-            RecoveryOrder storedOrder = dao.save(newOrder);
+            RecoveryOrder order = createRecoveryOrder(exchange, request);
+            RecoveryOrder storedOrder = repository.save(order);
             exchange.getIn().setBody(storedOrder);
         } else if (exBody == null) {
-            logMsg.append(": No income request found.");
-            RecoveryException r = new RecoveryException(logMsg.toString());
-            throw r;
+            logMessage.append(": No income request found.");
+            throw new RecoveryException(logMessage.toString());
         } else {
-            logMsg.append(": Wrong type of income request: ");
-            logMsg.append(exBody.getClass().getCanonicalName());
-            RecoveryException r = new RecoveryException(logMsg.toString());
-            throw r;
+            logMessage.append(": Wrong type of income request: ");
+            logMessage.append(exBody.getClass().getCanonicalName());
+            throw new RecoveryException(logMessage.toString());
         }
     }
 
@@ -75,50 +71,44 @@ public class StoringProcessor implements Processor {
      * @return Recovery DB order record.
      * @throws Exception @see Exception
      */
-    private RecoveryOrder makeNewOrder(Exchange exchange, RecoveryRequest request)
-            throws Exception {
-        StringBuilder logMsg = new StringBuilder(exchange.getExchangeId());
+    private RecoveryOrder createRecoveryOrder(Exchange exchange, RecoveryRequest request) throws Exception {
+        StringBuilder logMessage = new StringBuilder(exchange.getExchangeId());
         if (request.getCallbackUri() == null) {
-            logMsg.append(": Callback route URI is mandatory.");
-            RecoveryException r = new RecoveryException(logMsg.toString());
-            throw r;
+            logMessage.append(": Callback route URI is mandatory.");
+            throw new RecoveryException(logMessage.toString());
         }
         String pauseRule = request.getPause() != null
                 ? request.getPause().replaceAll("\\s+", "")
                 : "";
         if (!(pauseRule.isEmpty() || PauseConfig.checkRule(pauseRule))) {
-            logMsg.append(": Wrong pause rule (");
-            logMsg.append(pauseRule);
-            logMsg.append(") format. Pause rule pattern: ");
-            logMsg.append(PauseConfig.PAUSE_RULE_REGEX);
-            RecoveryException r = new RecoveryException(logMsg.toString());
-            throw r;
+            logMessage.append(": Wrong pause rule (");
+            logMessage.append(pauseRule);
+            logMessage.append(") format. Pause rule pattern: ");
+            logMessage.append(PauseConfig.PAUSE_RULE_REGEX);
+            throw new RecoveryException(logMessage.toString());
         }
         Date now = new Date(System.currentTimeMillis());
-        RecoveryOrder order = new RecoveryOrder();
-        order.setCallbackUri(request.getCallbackUri());
-        order.setCode(ProcessingCodeEnum.NEW);
-        order.setDescription("Order stored.");
-        order.setExternalId(request.getExternalId());
-        order.setHoldingCode(HoldingCodeEnum.NO_HOLDING);
-        order.setLocker(request.getLocker() == null
-                ? UUID.randomUUID().toString()
-                : request.getLocker());
-        order.setLockerVersion(new UUID(0, 0).toString());
-        order.setMessage(request.getMessage());
-        order.setOrderCreated(now);
-        order.setOrderModified(now);
-        order.setOrderOpened(now);
-        order.setOrderUpdated(now);
-        order.setPause(pauseRule.isEmpty() ? null : pauseRule);
-        order.setProcessingCount(0);
-        order.setProcessingFrom(request.getProcessingFrom());
-        order.setProcessingLimit(request.getProcessingLimit());
-        order.setProcessingTo(request.getProcessingTo());
-        order.setQueue(request.getQueue());
-        order.setQueueParent(request.getQueueParent());
-        order.setStatus(RecoveryStatusEnum.PROCESSING);
-        order.setVersionId(null);
-        return order;
+        return RecoveryOrder.builder()
+            .callbackUri(request.getCallbackUri())
+            .code(ProcessingCodeEnum.NEW)
+            .description("Order stored.")
+            .externalId(request.getExternalId())
+            .holdingCode(HoldingCodeEnum.NO_HOLDING)
+            .locker(request.getLocker() == null ? UUID.randomUUID().toString() : request.getLocker())
+            .lockerVersion(new UUID(0, 0).toString())
+            .message(request.getMessage())
+            .orderCreated(now)
+            .orderModified(now)
+            .orderOpened(now)
+            .orderUpdated(now)
+            .pause(pauseRule.isEmpty() ? null : pauseRule)
+            .processingCount(0)
+            .processingFrom(request.getProcessingFrom())
+            .processingLimit(request.getProcessingLimit())
+            .processingTo(request.getProcessingTo())
+            .queue(request.getQueue())
+            .queueParent(request.getQueueParent())
+            .status(RecoveryStatusEnum.PROCESSING)
+            .versionId(null).build();
     }
 }

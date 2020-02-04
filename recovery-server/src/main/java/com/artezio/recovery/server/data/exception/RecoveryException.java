@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.exceptions;
+package com.artezio.recovery.server.data.exception;
 
 /**
  * Recovery processing exception.

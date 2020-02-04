@@ -20,6 +20,6 @@ public enum RecoveryStatusEnum {
      /**
      * Recovery request is completed with error.
      */
-    ERROR;
+    ERROR
     
 }

@@ -1,15 +1,13 @@
-package com.artezio.recovery.server.adapters;
+package com.artezio.recovery.server.routes.adapters;
 
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spring.SpringRouteBuilder;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
-import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,12 +41,6 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
     private static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
 
     /**
-     * Data access object.
-     */
-    @Autowired
-    private IRecoveryOrderCrud dao;
-
-    /**
      * Server host property.
      */
     @Value("${com.artezio.recovery.server.host:localhost}")
@@ -74,6 +66,6 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
             .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
             .unmarshal().json(JsonLibrary.Jackson, RecoveryRequest.class)
             .to("log:com.artezio.recovery?level=DEBUG")
-            .to(RecoveryRoutes.INCOME_URL);
+            .to(RecoveryRoute.INCOME_URL);
     }
 }
