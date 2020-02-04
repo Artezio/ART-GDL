@@ -8,17 +8,22 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.server.adapters.JMSAdapter;
+import com.artezio.recovery.server.adapters.RestAdapter;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
 
-import com.artezio.recovery.server.data.types.DeliveryMethods;
+import com.artezio.recovery.server.data.types.DeliveryMethodType;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -38,6 +43,12 @@ public class BatchProcessing {
      * Size of data page to upload payment request records.
      */
     private static final int PAGE_SIZE = 1000;
+
+    /**
+     * Server host property.
+     */
+    @Value("${com.artezio.recovery.server.host:localhost}")
+    private String serverHost;
 
     /**
      * Current Apache Camel context.
@@ -61,10 +72,16 @@ public class BatchProcessing {
     private ProducerTemplate directProducer;
 
     /**
-     * Recovery request income route producer.
+     * Recovery request jms route producer.
      */
     @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
     private ProducerTemplate jmsProducer;
+
+    /**
+     * Recovery request rest route producer.
+     */
+    @Produce(uri = RestAdapter.POST_ENDPOINT_URL + "?host=localhost:8080")
+    private ProducerTemplate restProducer;
 
 
     /**
@@ -112,7 +129,7 @@ public class BatchProcessing {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
-    public void startAll(DeliveryMethods deliveryMethodType) {
+    public void startAll(DeliveryMethodType deliveryMethodType) {
         if (!camel.getStatus().isStarted()) {
             return;
         }
@@ -122,7 +139,7 @@ public class BatchProcessing {
             for (PaymentRequest payment : page) {
                 try {
                     startRequest(payment, deliveryMethodType);
-                } catch (CamelExecutionException ex) {
+                } catch (CamelExecutionException | JsonProcessingException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
                             + ": "
@@ -142,7 +159,7 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethods deliveryMethodType) {
+    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
         if (payment == null) {
             return;
         }
@@ -162,13 +179,17 @@ public class BatchProcessing {
         sendRequest(request, deliveryMethodType);
     }
 
-    private void sendRequest(RecoveryRequest request, DeliveryMethods deliveryMethodType) {
+    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
         switch (deliveryMethodType) {
             case DIRECT:
                 directProducer.sendBody(request);
+                break;
             case JMS:
                 jmsProducer.sendBody(request);
-            case HTTP:
+                break;
+            case REST:
+                restProducer.sendBody(new ObjectMapper().writeValueAsString(request));
+                break;
         }
     }
 }

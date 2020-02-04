@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 
-import com.artezio.recovery.server.data.types.DeliveryMethods;
+import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -87,11 +87,11 @@ public class IndexPageBean {
      */
 
     @Getter
-    private Map<String,DeliveryMethods> messageDeliveryMethodTypes;
+    private Map<String, DeliveryMethodType> messageDeliveryMethodTypes;
 
     @Getter
     @Setter
-    private DeliveryMethods selectedChannel;
+    private DeliveryMethodType selectedChannel;
 
     @Getter
     private String eta;
@@ -217,10 +217,10 @@ public class IndexPageBean {
     }
 
     private void initDataStructures() {
-        messageDeliveryMethodTypes = new LinkedHashMap<String, DeliveryMethods>();
-        messageDeliveryMethodTypes.put("Direct Channel", DeliveryMethods.DIRECT); //label, value
-        messageDeliveryMethodTypes.put("JMS Channel", DeliveryMethods.JMS);
-        messageDeliveryMethodTypes.put("HTTP Channel", DeliveryMethods.HTTP);
+        messageDeliveryMethodTypes = new LinkedHashMap<String, DeliveryMethodType>();
+        messageDeliveryMethodTypes.put("Direct Channel", DeliveryMethodType.DIRECT); //label, value
+        messageDeliveryMethodTypes.put("JMS Channel", DeliveryMethodType.JMS);
+        messageDeliveryMethodTypes.put("REST Channel", DeliveryMethodType.REST);
     }
 
     /**

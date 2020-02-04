@@ -17,7 +17,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
@@ -130,20 +129,5 @@ public class RestAdapterTest {
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
         camel.stop();
-    }
-
-    private String getBody() {
-        return "{\n"
-            + "\"callbackUri\":\"direct://callback\",\n"
-            + "\"externalId\":\"1\",\n"
-            + "\"locker\":\"\",\n"
-            + "\"message\":\"Hello from Rest Producer!\",\n"
-            + "\"pause\":\"1:2; 4:1; 7:3\",\n"
-            + "\"processingFrom\":\"2020-03-03\",\n"
-            + "\"processingLimit\":5,\n"
-            + "\"processingTo\":\"2020-04-03\",\n"
-            + "\"queue\":\"10\",\n"
-            + "\"queueParent\":\"\"\n"
-            + "}";
     }
 }

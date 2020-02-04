@@ -28,6 +28,11 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
     private static final String POST_ENDPOINT_ID = "postEndpoint";
 
     /**
+     * POST endpoint URL.
+     */
+    public static final String POST_ENDPOINT_URL = "rest:post:recover";
+
+    /**
      * REST route ID.
      */
     private static final String REST_ROUTE_ID = "processPostRequest";
@@ -35,7 +40,7 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
     /**
      * REST route URL.
      */
-    public static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
+    private static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
 
     /**
      * Data access object.
@@ -44,9 +49,9 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
     private IRecoveryOrderCrud dao;
 
     /**
-     * Server URL property.
+     * Server host property.
      */
-    @Value("${com.artezio.recovery.server.from.host:localhost}")
+    @Value("${com.artezio.recovery.server.host:localhost}")
     private String serverHost;
 
     /**

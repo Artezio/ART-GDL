@@ -1,7 +1,7 @@
 package com.artezio.recovery.server.data.types;
 
-public enum DeliveryMethods {
+public enum DeliveryMethodType {
     DIRECT,
     JMS,
-    HTTP
+    REST
 }

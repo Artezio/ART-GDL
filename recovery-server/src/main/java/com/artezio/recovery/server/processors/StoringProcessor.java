@@ -8,7 +8,7 @@ import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
-import com.artezio.recovery.server.data.types.RecoveryException;
+import com.artezio.recovery.server.data.exceptions.RecoveryException;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;
 import java.util.UUID;
