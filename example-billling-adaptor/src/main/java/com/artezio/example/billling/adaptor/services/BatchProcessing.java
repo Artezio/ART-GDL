@@ -2,33 +2,29 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
-import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
-import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
-import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
-import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.server.routes.adapters.JMSAdapter;
-import com.artezio.recovery.server.routes.adapters.RestAdapter;
-import com.artezio.recovery.server.routes.RecoveryRoute;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
 
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
+import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
+import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
+import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.client.RecoveryRequestService;
+import com.artezio.recovery.server.data.exception.RecoveryException;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.types.DeliveryMethodType;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Batch operations with payment processing.
@@ -45,6 +41,12 @@ public class BatchProcessing {
     private static final int PAGE_SIZE = 1000;
 
     /**
+     * Recovery request route producer handler.
+     */
+    @Autowired
+    RecoveryRequestService service;
+
+    /**
      * Current Apache Camel context.
      */
     @Autowired
@@ -59,24 +61,6 @@ public class BatchProcessing {
      */
     @Autowired
     private IPaymentRequestCrud daoPayments;
-    /**
-     * Recovery request income route producer.
-     */
-    @Produce(uri = RecoveryRoute.INCOME_URL)
-    private ProducerTemplate directProducer;
-
-    /**
-     * Recovery request jms route producer.
-     */
-    @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
-    private ProducerTemplate jmsProducer;
-
-    /**
-     * Recovery request rest route producer.
-     */
-    @Produce(uri = RestAdapter.POST_ENDPOINT_URL + "?host=localhost:8080")
-    private ProducerTemplate restProducer;
-
 
     /**
      * Count all processing recovery orders.
@@ -110,9 +94,7 @@ public class BatchProcessing {
             daoPayments.cancelProcessing();
             camel.start();
         } catch (Exception e) {
-            String error = e.getClass().getSimpleName()
-                    + ": "
-                    + e.getMessage();
+            String error = e.getClass().getSimpleName() + ": " + e.getMessage();
             log.error(error);
         }
 
@@ -124,26 +106,26 @@ public class BatchProcessing {
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
     public void startAll(DeliveryMethodType deliveryMethodType) {
-        if (!camel.getStatus().isStarted()) {
-            return;
-        }
-        int pageNum = 0;
-        Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
-        while (page.hasContent()) {
-            for (PaymentRequest payment : page) {
-                try {
-                    startRequest(payment, deliveryMethodType);
-                } catch (CamelExecutionException | JsonProcessingException ex) {
-                    Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
-                    String error = t.getClass().getSimpleName()
-                            + ": "
-                            + t.getMessage();
-                    log.error(error);
-                    payment.setPaymentState(PaymentState.SYSTEM_ERROR);
-                    payment.setDescription(error);
+        if (camel.getStatus().isStarted()) {
+//        if (service.isServerStarted()) {
+            int pageNum = 0;
+            Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
+            while (page.hasContent()) {
+                for (PaymentRequest payment : page) {
+                    try {
+                        startRequest(payment, deliveryMethodType);
+                    } catch (CamelExecutionException | RecoveryException ex) {
+                        Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
+                        String error = t.getClass().getSimpleName()
+                                + ": "
+                                + t.getMessage();
+                        log.error(error);
+                        payment.setPaymentState(PaymentState.SYSTEM_ERROR);
+                        payment.setDescription(error);
+                    }
                 }
+                page = daoPayments.getNew(PageRequest.of(++pageNum, PAGE_SIZE));
             }
-            page = daoPayments.getNew(PageRequest.of(++pageNum, PAGE_SIZE));
         }
     }
 
@@ -153,37 +135,22 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
-        if (payment == null) {
-            return;
-        }
-        RecoveryRequest request = new RecoveryRequest();
-        request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
-        request.setExternalId(String.valueOf(payment.getId()));
-        request.setLocker((payment.getLocker() == null)
-                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-                : payment.getLocker());
-        request.setMessage(payment.getOperationType().name());
-        request.setPause(payment.getPause());
-        request.setProcessingFrom(payment.getProcessingFrom());
-        request.setProcessingLimit(payment.getProcessingLimit());
-        request.setProcessingTo(payment.getProcessingTo());
-        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
-        request.setQueueParent(payment.getQueueParent());
-        sendRequest(request, deliveryMethodType);
-    }
-
-    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
-        switch (deliveryMethodType) {
-            case DIRECT:
-                directProducer.sendBody(request);
-                break;
-            case JMS:
-                jmsProducer.sendBody(request);
-                break;
-            case REST:
-                restProducer.sendBody(new ObjectMapper().writeValueAsString(request));
-                break;
+    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) throws RecoveryException {
+        if (payment != null) {
+            RecoveryRequest request = new RecoveryRequest();
+            request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+            request.setExternalId(String.valueOf(payment.getId()));
+            request.setLocker((payment.getLocker() == null)
+                    ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                    : payment.getLocker());
+            request.setMessage(payment.getOperationType().name());
+            request.setPause(payment.getPause());
+            request.setProcessingFrom(payment.getProcessingFrom());
+            request.setProcessingLimit(payment.getProcessingLimit());
+            request.setProcessingTo(payment.getProcessingTo());
+            request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+            request.setQueueParent(payment.getQueueParent());
+            service.sendRequest(deliveryMethodType, request);
         }
     }
 }

@@ -22,10 +22,14 @@ import com.artezio.recovery.application.RecoveryServerApplication;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import com.artezio.recovery.server.data.model.RecoveryOrder;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Rest adapter test.
+ *
+ * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
+ */
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(classes = RecoveryServerApplication.class)
 @ComponentScan(
@@ -124,7 +128,7 @@ public class RestAdapterTest {
         req.setMessage("Hello from Rest Producer!");
         dao.deleteAll();
 
-        producer.sendBody(new ObjectMapper().writeValueAsString(req));
+        producer.sendBody(req);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();

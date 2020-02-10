@@ -1,13 +1,13 @@
 package com.artezio.recovery.server.routes.adapters;
 
-import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.routes.RecoveryRoute;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.routes.RecoveryRoute;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,13 +43,13 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
     /**
      * Server host property.
      */
-    @Value("${com.artezio.recovery.server.host:localhost}")
+    @Value("${rest.server.host:localhost}")
     private String serverHost;
 
     /**
      * Server port property.
      */
-    @Value("${com.artezio.recovery.server.port:8080}")
+    @Value("${rest.server.port:8080}")
     private String serverPort;
 
     @Override
@@ -57,14 +57,17 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
 
         restConfiguration()
             .component("restlet")
-            .host(serverHost).port(serverPort);
+            .host(serverHost).port(serverPort)
+            .bindingMode(RestBindingMode.auto);
 
         rest()
-            .post("/recover").id(POST_ENDPOINT_ID).to(REST_ROUTE_URL);
+            .post("/recover")
+            .id(POST_ENDPOINT_ID)
+            .type(RecoveryRequest.class)
+            .to(REST_ROUTE_URL);
 
         from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
             .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-            .unmarshal().json(JsonLibrary.Jackson, RecoveryRequest.class)
             .to("log:com.artezio.recovery?level=DEBUG")
             .to(RecoveryRoute.INCOME_URL);
     }
