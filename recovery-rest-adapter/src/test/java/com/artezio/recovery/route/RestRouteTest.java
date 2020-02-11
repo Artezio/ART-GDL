@@ -1,11 +1,11 @@
 package com.artezio.recovery.route;
 
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import com.artezio.recovery.application.RecoveryRestAdaptorApplication;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -13,18 +13,7 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-
-import com.artezio.recovery.application.RecoveryRestAdaptorApplication;
-import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Rest route test.
@@ -32,22 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
  */
 @RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(classes = {RecoveryServerApplication.class, RecoveryRestAdaptorApplication.class})
-@ComponentScan(
-    basePackages = {
-        "com.artezio.recovery"
-    }
-)
-@EntityScan(
-    basePackages = {
-        "com.artezio.recovery"
-    }
-)
-@EnableJpaRepositories(
-    basePackages = {
-        "com.artezio.recovery"
-    }
-)
+@SpringBootTest(classes = {RecoveryRestAdaptorApplication.class})
 @MockEndpoints
 @Slf4j
 public class RestRouteTest {
