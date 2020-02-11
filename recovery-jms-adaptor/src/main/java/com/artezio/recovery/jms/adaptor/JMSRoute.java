@@ -9,7 +9,7 @@ import com.artezio.recovery.server.routes.RecoveryRoute;
 
 @Component
 @Slf4j
-public class JMSAdapter extends SpringRouteBuilder  {
+public class JMSRoute extends SpringRouteBuilder  {
 
     /**
      * JMS Point to Point Route ID.
