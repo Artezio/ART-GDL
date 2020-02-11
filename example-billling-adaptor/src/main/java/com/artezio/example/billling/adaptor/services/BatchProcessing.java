@@ -179,7 +179,7 @@ public class BatchProcessing {
                 directProducer.sendBody(request);
                 break;
             case JMS:
-                //jmsProducer.sendBody(request);
+                jmsProducer.sendBody(request);
                 break;
             case REST:
                 restProducer.sendBody(new ObjectMapper().writeValueAsString(request));
