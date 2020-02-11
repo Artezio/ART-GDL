@@ -1,4 +1,4 @@
-package com.artezio.recovery.test;
+package com.artezio.recovery.route;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;
@@ -18,38 +18,39 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
+import com.artezio.recovery.application.RecoveryRestAdaptorApplication;
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import com.artezio.recovery.server.data.model.RecoveryOrder;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Rest adapter test.
+ * Rest route test.
  *
  * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
  */
 @RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(classes = RecoveryServerApplication.class)
+@SpringBootTest(classes = {RecoveryServerApplication.class, RecoveryRestAdaptorApplication.class})
 @ComponentScan(
     basePackages = {
-        "com.artezio.recovery.server"
+        "com.artezio.recovery"
     }
 )
 @EntityScan(
     basePackages = {
-        "com.artezio.recovery.server"
+        "com.artezio.recovery"
     }
 )
 @EnableJpaRepositories(
     basePackages = {
-        "com.artezio.recovery.server"
+        "com.artezio.recovery"
     }
 )
 @MockEndpoints
 @Slf4j
-public class RestAdapterTest {
+public class RestRouteTest {
 
     /**
      * Test callback route URI.
@@ -70,7 +71,7 @@ public class RestAdapterTest {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository dao;
+    private RecoveryOrderRepository repository;
 
     /**
      * Recovery request income route producer.
@@ -100,7 +101,7 @@ public class RestAdapterTest {
     private static final int ENDPOINT_TIMEOUT = 30_000;
 
     @Test(timeout = TEST_TIMEOUT)
-    public void restTest() throws Exception {
+    public void restRouteTest() throws Exception {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
@@ -126,7 +127,7 @@ public class RestAdapterTest {
         RecoveryRequest req = new RecoveryRequest();
         req.setCallbackUri(CALLBACK_URI);
         req.setMessage("Hello from Rest Producer!");
-        dao.deleteAll();
+        repository.deleteAll();
 
         producer.sendBody(req);
 

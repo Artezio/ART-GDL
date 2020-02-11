@@ -1,4 +1,4 @@
-package com.artezio.recovery.server.routes.adapters;
+package com.artezio.recovery.route;
 
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -12,13 +12,13 @@ import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Recovery Apache Camel routes class.
+ * Recovery Apache Camel rest route class.
  *
  * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
  */
 @Component
 @Slf4j
-public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
+public class RestRoute extends SpringRouteBuilder {
 
     /**
      * POST endpoint ID.
@@ -61,8 +61,8 @@ public class RestAdapter extends SpringRouteBuilder implements BaseAdapter {
             .bindingMode(RestBindingMode.auto);
 
         rest()
-            .post("/recover")
-            .id(POST_ENDPOINT_ID)
+            .post("/recover").id(POST_ENDPOINT_ID)
+            .consumes("application/json")
             .type(RecoveryRequest.class)
             .to(REST_ROUTE_URL);
 
