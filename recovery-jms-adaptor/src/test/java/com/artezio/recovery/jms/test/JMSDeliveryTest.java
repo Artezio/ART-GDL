@@ -1,6 +1,6 @@
 package com.artezio.recovery.jms.test;
 
-import com.artezio.recovery.jms.adaptor.JMSAdapter;
+import com.artezio.recovery.jms.adaptor.JMSRoute;
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import com.artezio.recovery.server.data.model.RecoveryOrder;
@@ -66,7 +66,7 @@ public class JMSDeliveryTest {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
+    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
     private ProducerTemplate producer;
 
     /**

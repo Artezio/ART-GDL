@@ -7,7 +7,7 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.jms.adaptor.JMSAdapter;
+import com.artezio.recovery.jms.adaptor.JMSRoute;
 import com.artezio.recovery.server.routes.adapters.RestAdapter;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
@@ -68,7 +68,7 @@ public class BatchProcessing {
     /**
      * Recovery request jms route producer.
      */
-    @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
+    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
     private ProducerTemplate jmsProducer;
 
     /**
