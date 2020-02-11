@@ -24,17 +24,17 @@ import org.springframework.transaction.annotation.Transactional;
 @SpringBootTest(classes = RecoveryJMSAdaptorApplication.class)
 @ComponentScan(
         basePackages = {
-                "com.artezio.recovery.server"
+                "com.artezio.recovery"
         }
 )
 @EntityScan(
         basePackages = {
-                "com.artezio.recovery.server"
+                "com.artezio.recovery"
         }
 )
 @EnableJpaRepositories(
         basePackages = {
-                "com.artezio.recovery.server"
+                "com.artezio.recovery"
         }
 )
 @MockEndpoints
