@@ -20,12 +20,11 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.jms.adaptor.JMSAdapter;
 import com.artezio.recovery.route.RestRoute;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
-import com.artezio.recovery.server.routes.adapters.JMSAdapter;
-import com.fasterxml.jackson.core.JsonProcessingException;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -78,7 +77,7 @@ public class BatchProcessing {
 
     /**
      * Count all processing recovery orders.
-     *
+     * 
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -87,13 +86,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     *
+     * 
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-
+    
     /**
      * Stop all current processes.
      */
@@ -131,7 +130,7 @@ public class BatchProcessing {
             for (PaymentRequest payment : page) {
                 try {
                     startRequest(payment, deliveryMethodType);
-                } catch (CamelExecutionException | JsonProcessingException ex) {
+                } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
                         + ": "
@@ -151,8 +150,7 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType)
-        throws JsonProcessingException {
+    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) {
         if (payment == null) {
             return;
         }
@@ -172,8 +170,7 @@ public class BatchProcessing {
         sendRequest(request, deliveryMethodType);
     }
 
-    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType)
-        throws JsonProcessingException {
+    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) {
         switch (deliveryMethodType) {
             case DIRECT:
                 directProducer.sendBody(request);

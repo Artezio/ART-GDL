@@ -18,6 +18,7 @@
     <modules>
         <module>recovery-server</module>
         <module>example-billling-adaptor</module>
-        <module>rest-adapter</module>
+        <module>recovery-rest-adapter</module>
+        <module>recovery-jms-adaptor</module>
     </modules>
 </project>

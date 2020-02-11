@@ -90,13 +90,18 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>recovery-jms-adaptor</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.primefaces</groupId>
             <artifactId>primefaces</artifactId>
             <version>7.0</version>
         </dependency>
         <dependency>
             <groupId>com.artezio</groupId>
-            <artifactId>rest-adapter</artifactId>
+            <artifactId>recovery-rest-adapter</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
