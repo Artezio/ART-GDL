@@ -1,6 +1,7 @@
-package com.artezio.recovery.test;
+package com.artezio.recovery.jms.test;
 
-import com.artezio.recovery.application.RecoveryServerApplication;
+import com.artezio.recovery.jms.adaptor.JMSAdapter;
+import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import com.artezio.recovery.server.data.model.RecoveryOrder;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
@@ -20,7 +21,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(CamelSpringBootRunner.class)
-@SpringBootTest(classes = RecoveryServerApplication.class)
+@SpringBootTest(classes = RecoveryJMSAdaptorApplication.class)
 @ComponentScan(
         basePackages = {
                 "com.artezio.recovery.server"

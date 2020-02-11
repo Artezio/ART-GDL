@@ -7,7 +7,6 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.server.routes.adapters.JMSAdapter;
 import com.artezio.recovery.server.routes.adapters.RestAdapter;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 import com.artezio.recovery.server.data.model.RecoveryRequest;
@@ -23,12 +22,12 @@ import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
 
 /**
  * Batch operations with payment processing.
@@ -68,8 +67,8 @@ public class BatchProcessing {
     /**
      * Recovery request jms route producer.
      */
-    @Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
-    private ProducerTemplate jmsProducer;
+    /*@Produce(uri = JMSAdapter.JMS_QUEUE_ROUTE_URL)
+    private ProducerTemplate jmsProducer;*/
 
     /**
      * Recovery request rest route producer.
@@ -179,7 +178,7 @@ public class BatchProcessing {
                 directProducer.sendBody(request);
                 break;
             case JMS:
-                jmsProducer.sendBody(request);
+                //jmsProducer.sendBody(request);
                 break;
             case REST:
                 restProducer.sendBody(new ObjectMapper().writeValueAsString(request));

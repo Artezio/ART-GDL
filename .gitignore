@@ -4,3 +4,5 @@
 /example-billling-adaptor/target/
 .idea
 *.iml
+/recovery-jms-adaptor/target/
+

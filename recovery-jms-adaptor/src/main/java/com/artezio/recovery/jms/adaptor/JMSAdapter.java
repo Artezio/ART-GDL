@@ -1,16 +1,15 @@
-package com.artezio.recovery.server.routes.adapters;
-
-import org.apache.camel.spring.SpringRouteBuilder;
-import org.springframework.stereotype.Component;
+package com.artezio.recovery.jms.adaptor;
 
 import com.artezio.recovery.server.config.TransactionSupportConfig;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.spring.SpringRouteBuilder;
+import org.springframework.stereotype.Component;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
-import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class JMSAdapter extends SpringRouteBuilder implements BaseAdapter {
+public class JMSAdapter extends SpringRouteBuilder  {
 
     /**
      * JMS Point to Point Route ID.
@@ -24,7 +23,7 @@ public class JMSAdapter extends SpringRouteBuilder implements BaseAdapter {
     @Override
     public void configure() throws Exception {
         from(JMS_QUEUE_ROUTE_URL).transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-            .routeId(JMS_QUEUE_P2P_ROUTE_ID)
-            .to(RecoveryRoute.INCOME_URL);
+                .routeId(JMS_QUEUE_P2P_ROUTE_ID)
+                .to(RecoveryRoute.INCOME_URL);
     }
 }
