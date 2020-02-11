@@ -2,33 +2,32 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
-import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
-import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
-import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
-import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.server.routes.adapters.JMSAdapter;
-import com.artezio.recovery.server.routes.adapters.RestAdapter;
-import com.artezio.recovery.server.routes.RecoveryRoute;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import java.util.concurrent.TimeUnit;
 
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
+import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
+import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
+import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.route.RestRoute;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.types.DeliveryMethodType;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.routes.adapters.JMSAdapter;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Batch operations with payment processing.
@@ -74,13 +73,12 @@ public class BatchProcessing {
     /**
      * Recovery request rest route producer.
      */
-    @Produce(uri = RestAdapter.POST_ENDPOINT_URL + "?host=localhost:8080")
+    @Produce(uri = RestRoute.POST_ENDPOINT_URL + "?host=localhost:8080")
     private ProducerTemplate restProducer;
-
 
     /**
      * Count all processing recovery orders.
-     * 
+     *
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -89,13 +87,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     * 
+     *
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-    
+
     /**
      * Stop all current processes.
      */
@@ -111,8 +109,8 @@ public class BatchProcessing {
             camel.start();
         } catch (Exception e) {
             String error = e.getClass().getSimpleName()
-                    + ": "
-                    + e.getMessage();
+                + ": "
+                + e.getMessage();
             log.error(error);
         }
 
@@ -136,8 +134,8 @@ public class BatchProcessing {
                 } catch (CamelExecutionException | JsonProcessingException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
-                            + ": "
-                            + t.getMessage();
+                        + ": "
+                        + t.getMessage();
                     log.error(error);
                     payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                     payment.setDescription(error);
@@ -153,7 +151,8 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
+    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType)
+        throws JsonProcessingException {
         if (payment == null) {
             return;
         }
@@ -161,8 +160,8 @@ public class BatchProcessing {
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
-                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-                : payment.getLocker());
+            ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+            : payment.getLocker());
         request.setMessage(payment.getOperationType().name());
         request.setPause(payment.getPause());
         request.setProcessingFrom(payment.getProcessingFrom());
@@ -173,7 +172,8 @@ public class BatchProcessing {
         sendRequest(request, deliveryMethodType);
     }
 
-    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) throws JsonProcessingException {
+    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType)
+        throws JsonProcessingException {
         switch (deliveryMethodType) {
             case DIRECT:
                 directProducer.sendBody(request);
@@ -182,7 +182,7 @@ public class BatchProcessing {
                 jmsProducer.sendBody(request);
                 break;
             case REST:
-                restProducer.sendBody(new ObjectMapper().writeValueAsString(request));
+                restProducer.sendBody(request);
                 break;
         }
     }

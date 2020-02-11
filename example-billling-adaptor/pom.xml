@@ -94,6 +94,11 @@
             <artifactId>primefaces</artifactId>
             <version>7.0</version>
         </dependency>
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>rest-adapter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>      
