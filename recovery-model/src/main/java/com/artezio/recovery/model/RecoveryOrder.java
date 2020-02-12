@@ -1,10 +1,11 @@
 /*
  */
-package com.artezio.recovery.server.data.model;
+package com.artezio.recovery.model;
 
-import com.artezio.recovery.server.data.types.HoldingCodeEnum;
-import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
-import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
+import com.artezio.recovery.model.types.HoldingCodeEnum;
+import com.artezio.recovery.model.types.ProcessingCodeEnum;
+import com.artezio.recovery.model.types.RecoveryStatusEnum;
+
 import java.io.Serializable;
 import java.util.Date;
 import javax.persistence.Column;
@@ -125,6 +126,6 @@ public class RecoveryOrder implements Serializable {
     @Enumerated(EnumType.STRING)
     private RecoveryStatusEnum status;
     @Column(length = 128)
-    private String versionId;    
+    private String versionId;
 
 }

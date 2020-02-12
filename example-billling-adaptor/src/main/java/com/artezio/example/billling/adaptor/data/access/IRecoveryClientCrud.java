@@ -2,7 +2,7 @@
  */
 package com.artezio.example.billling.adaptor.data.access;
 
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryOrder;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -21,7 +21,7 @@ public interface IRecoveryClientCrud extends JpaRepository<RecoveryOrder, Long> 
      * @return Number of all processing recovery orders.
      */
     @Query("SELECT COUNT(o) FROM RecoveryOrder o WHERE"
-            + " o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING")
+            + " o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING")
     long countProcessingOrders();
     
     /**
@@ -30,8 +30,8 @@ public interface IRecoveryClientCrud extends JpaRepository<RecoveryOrder, Long> 
      * @return Number of paused processing recovery orders.
      */
     @Query("SELECT COUNT(o) FROM RecoveryOrder o WHERE"
-            + " o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING"
-            + " AND o.holdingCode != com.artezio.recovery.server.data.types.HoldingCodeEnum.NO_HOLDING")
+            + " o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING"
+            + " AND o.holdingCode != com.artezio.recovery.model.types.HoldingCodeEnum.NO_HOLDING")
     long countPausedOrders();
     
 }

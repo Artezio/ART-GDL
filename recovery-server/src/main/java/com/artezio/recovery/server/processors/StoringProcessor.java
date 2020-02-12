@@ -1,13 +1,13 @@
 package com.artezio.recovery.server.processors;
 
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
-import com.artezio.recovery.server.data.types.HoldingCodeEnum;
+import com.artezio.recovery.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.model.types.HoldingCodeEnum;
 import com.artezio.recovery.server.config.PauseConfig;
-import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
+import com.artezio.recovery.model.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
+import com.artezio.recovery.model.types.RecoveryStatusEnum;
 import java.util.Date;
 import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;

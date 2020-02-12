@@ -104,6 +104,11 @@
             <artifactId>recovery-rest-adapter</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>recovery-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>      

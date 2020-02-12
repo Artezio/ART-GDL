@@ -9,10 +9,10 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>recovery-rest-adapter</artifactId>
+    <artifactId>recovery-model</artifactId>
 
     <packaging>jar</packaging>
-    <name>Recovery rest adapter</name>
+    <name>Recovery Model</name>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -25,23 +25,6 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
-        <!-- Internal -->
-        <dependency>
-            <groupId>com.artezio</groupId>
-            <artifactId>recovery-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.artezio</groupId>
-            <artifactId>recovery-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <!-- External -->
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-spring-boot-starter</artifactId>
-            <version>${recovery.camel.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -57,23 +40,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-restlet</artifactId>
-            <version>${recovery.camel.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test</artifactId>
-            <version>${recovery.camel.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test-spring</artifactId>
-            <version>${recovery.camel.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -21,8 +21,8 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.route.RestRoute;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.rest.route.RestRoute;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
@@ -77,7 +77,7 @@ public class BatchProcessing {
 
     /**
      * Count all processing recovery orders.
-     * 
+     *
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -86,13 +86,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     * 
+     *
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-    
+
     /**
      * Stop all current processes.
      */

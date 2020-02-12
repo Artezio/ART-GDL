@@ -1,7 +1,7 @@
 package com.artezio.recovery.server.processors;
 
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryOrder;
 
 import java.util.Date;
 import java.util.UUID;
