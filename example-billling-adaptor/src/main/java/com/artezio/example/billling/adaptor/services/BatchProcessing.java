@@ -77,7 +77,7 @@ public class BatchProcessing {
 
     /**
      * Count all processing recovery orders.
-     *
+     * 
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -86,13 +86,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     *
+     * 
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-
+    
     /**
      * Stop all current processes.
      */
@@ -108,8 +108,8 @@ public class BatchProcessing {
             camel.start();
         } catch (Exception e) {
             String error = e.getClass().getSimpleName()
-                    + ": "
-                    + e.getMessage();
+                + ": "
+                + e.getMessage();
             log.error(error);
         }
 
@@ -133,8 +133,8 @@ public class BatchProcessing {
                 } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
-                            + ": "
-                            + t.getMessage();
+                        + ": "
+                        + t.getMessage();
                     log.error(error);
                     payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                     payment.setDescription(error);
@@ -158,8 +158,8 @@ public class BatchProcessing {
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
-                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-                : payment.getLocker());
+            ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+            : payment.getLocker());
         request.setMessage(payment.getOperationType().name());
         request.setPause(payment.getPause());
         request.setProcessingFrom(payment.getProcessingFrom());
