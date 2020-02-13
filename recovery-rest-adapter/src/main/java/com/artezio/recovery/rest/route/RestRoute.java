@@ -1,12 +1,12 @@
-package com.artezio.recovery.route;
+package com.artezio.recovery.rest.route;
 
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.artezio.recovery.model.RecoveryRequest;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
 import lombok.extern.slf4j.Slf4j;

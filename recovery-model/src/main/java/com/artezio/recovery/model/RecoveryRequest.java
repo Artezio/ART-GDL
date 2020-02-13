@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.model;
+package com.artezio.recovery.model;
 
 import java.io.Serializable;
 import java.util.Date;

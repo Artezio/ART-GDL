@@ -7,14 +7,15 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
+import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.artezio.recovery.model.RecoveryRequest;
 import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
@@ -63,6 +64,12 @@ public class RecoveryRequestService {
     private ProducerTemplate producer;
 
     /**
+     * Recovery request income route producer.
+     */
+    @Produce(uri = RecoveryRoute.INCOME_URL)
+    private ProducerTemplate directProducer;
+
+    /**
      * Sends recovery request depending on delivery method.
      *
      * @param request Recovery request that should be send.
@@ -74,8 +81,16 @@ public class RecoveryRequestService {
         producer.sendBody(request);
     }
 
+    /**
+     * Sends recovery request.
+     *
+     * @param request Recovery request that should be send.
+     */
+    public void sendRequest(RecoveryRequest request) {
+        directProducer.sendBody(request);
+    }
+
     public boolean isServerStarted() {
-        List<Route> routes = context.getRoutes();
         return context.getStatus().isStarted();
     }
 
@@ -89,7 +104,7 @@ public class RecoveryRequestService {
 
     public void stopRoutes(HashMap<String, Integer> timeouts) throws Exception {
         for (Entry<String, Integer> entry : timeouts.entrySet()) {
-            if(context.getRoute(entry.getKey()) !=null){
+            if (context.getRoute(entry.getKey()) != null) {
                 context.stopRoute(entry.getKey(), entry.getValue(), TimeUnit.MILLISECONDS);
             }
         }
@@ -100,8 +115,6 @@ public class RecoveryRequestService {
         context.start();
     }
 
-
-
     /**
      * Returns producer depending on delivery type.
      *
@@ -111,7 +124,6 @@ public class RecoveryRequestService {
     private ProducerTemplate getProducer(DeliveryMethodType deliveryMethodType)
         throws RecoveryException {
         ProducerTemplate producer = getProducerTemplate();
-        System.out.println("FROM SERVICE " + context.getName());
         switch (deliveryMethodType) {
             case JMS:
                 producer.setDefaultEndpointUri(JMS_QUEUE_ROUTE_URL);
