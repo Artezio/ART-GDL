@@ -1,9 +1,9 @@
 package com.artezio.recovery.server.processors;
 
-import static com.artezio.recovery.server.data.types.ProcessingCodeEnum.EXPIRED_BY_DATE;
-import static com.artezio.recovery.server.data.types.ProcessingCodeEnum.EXPIRED_BY_NUMBER;
-import static com.artezio.recovery.server.data.types.RecoveryStatusEnum.ERROR;
-import static com.artezio.recovery.server.data.types.RecoveryStatusEnum.SUCCESS;
+import static com.artezio.recovery.model.types.ProcessingCodeEnum.EXPIRED_BY_DATE;
+import static com.artezio.recovery.model.types.ProcessingCodeEnum.EXPIRED_BY_NUMBER;
+import static com.artezio.recovery.model.types.RecoveryStatusEnum.ERROR;
+import static com.artezio.recovery.model.types.RecoveryStatusEnum.SUCCESS;
 
 import java.util.Date;
 import java.util.UUID;
@@ -25,12 +25,12 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.artezio.recovery.server.config.PauseConfig;
-import com.artezio.recovery.server.data.model.ClientResponse;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.model.ClientResponse;
+import com.artezio.recovery.model.RecoveryOrder;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.server.data.types.ClientResultEnum;
-import com.artezio.recovery.server.data.types.HoldingCodeEnum;
-import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
+import com.artezio.recovery.model.types.ClientResultEnum;
+import com.artezio.recovery.model.types.HoldingCodeEnum;
+import com.artezio.recovery.model.types.ProcessingCodeEnum;
 
 import lombok.extern.slf4j.Slf4j;
 

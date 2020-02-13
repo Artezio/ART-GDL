@@ -20,5 +20,6 @@
         <module>example-billling-adaptor</module>
         <module>recovery-rest-adapter</module>
         <module>recovery-jms-adaptor</module>
+        <module>recovery-model</module>
     </modules>
 </project>

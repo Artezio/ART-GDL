@@ -2,7 +2,6 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import java.util.concurrent.TimeUnit;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -22,9 +21,8 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.client.RecoveryRequestService;
 import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.route.RestRoute;
+import com.artezio.recovery.model.RecoveryRequest;
 import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
@@ -60,14 +58,13 @@ public class BatchProcessing {
     @Autowired
     private IPaymentRequestCrud daoPayments;
 
-
     @Autowired
     private RecoveryRequestService service;
-//    /**
-//     * Recovery request income route producer.
-//     */
-//    @Produce(uri = RecoveryRoute.INCOME_URL)
-//    private ProducerTemplate directProducer;
+    /**
+     * Recovery request income route producer.
+     */
+    @Produce(uri = RecoveryRoute.INCOME_URL)
+    private ProducerTemplate directProducer;
 //
 //    /**
 //     * Recovery request jms route producer.
@@ -83,7 +80,7 @@ public class BatchProcessing {
 
     /**
      * Count all processing recovery orders.
-     * 
+     *
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -92,13 +89,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     * 
+     *
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-    
+
     /**
      * Stop all current processes.
      */
@@ -116,8 +113,8 @@ public class BatchProcessing {
             service.startContext();
         } catch (Exception e) {
             String error = e.getClass().getSimpleName()
-                    + ": "
-                    + e.getMessage();
+                + ": "
+                + e.getMessage();
             log.error(error);
         }
 
@@ -129,28 +126,27 @@ public class BatchProcessing {
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
     public void startAll(DeliveryMethodType deliveryMethodType) {
-        if (!service.isServerStarted()) {
-//        if (!camel.getStatus().isStarted()) {
-            return;
-        }
-        System.out.println("FROM APPLICATION " + camel.getName());
-        int pageNum = 0;
-        Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
-        while (page.hasContent()) {
-            for (PaymentRequest payment : page) {
-                try {
-                    startRequest(payment, deliveryMethodType);
-                } catch (CamelExecutionException | RecoveryException ex) {
-                    Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
-                    String error = t.getClass().getSimpleName()
-                            + ": "
-                            + t.getMessage();
-                    log.error(error);
-                    payment.setPaymentState(PaymentState.SYSTEM_ERROR);
-                    payment.setDescription(error);
+        System.out.println("FROM APPLICATION " +  camel.getName() +" " + camel.getVersion() + " " + camel.hashCode());
+//        if (service.isServerStarted()) {
+        if (camel.getStatus().isStarted()) {
+            int pageNum = 0;
+            Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
+            while (page.hasContent()) {
+                for (PaymentRequest payment : page) {
+                    try {
+                        startRequest(payment, deliveryMethodType);
+                    } catch (CamelExecutionException | RecoveryException ex) {
+                        Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
+                        String error = t.getClass().getSimpleName()
+                        + ": "
+                        + t.getMessage();
+                        log.error(error);
+                        payment.setPaymentState(PaymentState.SYSTEM_ERROR);
+                        payment.setDescription(error);
+                    }
                 }
+                page = daoPayments.getNew(PageRequest.of(++pageNum, PAGE_SIZE));
             }
-            page = daoPayments.getNew(PageRequest.of(++pageNum, PAGE_SIZE));
         }
     }
 
@@ -168,8 +164,8 @@ public class BatchProcessing {
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
-                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-                : payment.getLocker());
+            ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+            : payment.getLocker());
         request.setMessage(payment.getOperationType().name());
         request.setPause(payment.getPause());
         request.setProcessingFrom(payment.getProcessingFrom());
@@ -177,7 +173,9 @@ public class BatchProcessing {
         request.setProcessingTo(payment.getProcessingTo());
         request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
         request.setQueueParent(payment.getQueueParent());
-        service.sendRequest(deliveryMethodType, request);
+//        directProducer.sendBody(request);
+        service.sendRequest(request);
+//        service.sendRequest(deliveryMethodType, request);
 //        sendRequest(request, deliveryMethodType);
     }
 //

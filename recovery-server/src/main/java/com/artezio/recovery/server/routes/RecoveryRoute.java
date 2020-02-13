@@ -3,7 +3,7 @@
 package com.artezio.recovery.server.routes;
 
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryOrder;
 import com.artezio.recovery.server.processors.CallbackProcessor;
 import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
