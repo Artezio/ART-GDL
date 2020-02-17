@@ -4,6 +4,8 @@ package com.artezio.example.billling.adaptor.services;
 
 import java.util.concurrent.TimeUnit;
 
+import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.rest.route.RestRoute;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
@@ -21,8 +23,6 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.route.RestRoute;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 

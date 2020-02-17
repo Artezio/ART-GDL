@@ -1,8 +1,8 @@
 package com.artezio.recovery.route;
 
-import com.artezio.recovery.application.RecoveryRestAdaptorApplication;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
+import com.artezio.recovery.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;

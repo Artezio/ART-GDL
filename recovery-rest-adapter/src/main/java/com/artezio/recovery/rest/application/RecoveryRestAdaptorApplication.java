@@ -1,4 +1,4 @@
-package com.artezio.recovery.application;
+package com.artezio.recovery.rest.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

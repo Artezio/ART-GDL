@@ -5,7 +5,7 @@ package com.artezio.recovery.test;
 import com.artezio.recovery.application.RecoveryServerApplication;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.model.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.EndpointInject;

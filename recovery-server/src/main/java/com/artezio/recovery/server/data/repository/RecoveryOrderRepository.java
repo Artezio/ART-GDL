@@ -2,7 +2,7 @@
  */
 package com.artezio.recovery.server.data.repository;
 
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.model.RecoveryOrder;
 import java.util.Date;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,7 +26,7 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
      * @return Number removed orders.
      */
     @Modifying
-    @Query("DELETE FROM RecoveryOrder o WHERE o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.SUCCESS")
+    @Query("DELETE FROM RecoveryOrder o WHERE o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.SUCCESS")
     int cleanSuccessOrders();
 
     /**
@@ -35,7 +35,7 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
      * @return Number removed orders.
      */
     @Modifying
-    @Query("DELETE FROM RecoveryOrder o WHERE o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.ERROR")
+    @Query("DELETE FROM RecoveryOrder o WHERE o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.ERROR")
     int cleanErrorOrders();
 
     /**
@@ -86,8 +86,8 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
             + " (o.versionId IS NULL)"
             + " AND (o.queue IS NULL)"
             + " AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate))"
-            + " AND (o.code = com.artezio.recovery.server.data.types.ProcessingCodeEnum.NEW)"
-            + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
+            + " AND (o.code = com.artezio.recovery.model.types.ProcessingCodeEnum.NEW)"
+            + " AND (o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
     Page<RecoveryOrder> findNewOrders(
             Pageable pageable, 
@@ -104,7 +104,7 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
             + " (o.versionId IS NULL)"
             + " AND (o.queue IS NULL)"
             + " AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate))"
-            + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
+            + " AND (o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderOpened ASC")
     Page<RecoveryOrder> findProcessingOrders(
             Pageable pageable, 
@@ -120,7 +120,7 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
     @Query("SELECT o FROM RecoveryOrder o "
             + "WHERE (o.id IN ("
             + " SELECT MIN(q.id) FROM RecoveryOrder q"
-            + " WHERE q.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING"
+            + " WHERE q.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING"
             + " GROUP BY q.queue)) "
             + "AND (o.versionId IS NULL) "
             + "AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate)) "
@@ -141,7 +141,7 @@ public interface RecoveryOrderRepository extends CrudRepository<RecoveryOrder, L
     @Query("SELECT o FROM RecoveryOrder o WHERE"
             + " (((o.queue = :queue) AND (o.orderCreated < :created))"
             + " OR (o.queue = :queueParent)"
-            + " ) AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
+            + " ) AND (o.status = com.artezio.recovery.model.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
     Page<RecoveryOrder> findTopOfQueue(Pageable pageable,
             @Param("queue") String queue,
