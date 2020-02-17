@@ -76,6 +76,12 @@ public class BatchProcessing {
     private ProducerTemplate restProducer;
 
     /**
+     * Recovery request rest route producer.
+     */
+    @Produce(uri = "kafka:test?brokers=localhost:9092&groupId=testing")
+    private ProducerTemplate kafkaProducer;
+
+    /**
      * Count all processing recovery orders.
      * 
      * @return Number of all processing recovery orders.

@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <groupId>com.artezio</groupId>
         <artifactId>recovery</artifactId>
+        <groupId>com.artezio</groupId>
         <version>1.0.0</version>
     </parent>
-    <artifactId>example-billing-adaptor</artifactId>
-    <packaging>war</packaging>
-    <name>Recovery: Example of billing adaptor</name>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>recovery-kafka-adapter</artifactId>
+
+    <packaging>jar</packaging>
+    <name>Recovery kafka adapter</name>
     <dependencyManagement>
-        <dependencies>   
+        <dependencies>
             <dependency>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-dependencies</artifactId>
@@ -20,7 +24,19 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-    <dependencies>   
+    <dependencies>
+        <!-- Internal -->
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>recovery-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>recovery-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- External -->
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-spring-boot-starter</artifactId>
@@ -40,37 +56,12 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-jasper</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax.servlet.jsp</groupId>
-            <artifactId>javax.servlet.jsp-api</artifactId>
-            <version>2.3.1</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.faces</groupId>
-            <artifactId>jsf-api</artifactId>
-            <version>2.2.19</version>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.faces</groupId>
-            <artifactId>jsf-impl</artifactId>
-            <version>2.2.19</version>
-        </dependency>      
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-kafka</artifactId>
+            <version>${recovery.camel.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
@@ -84,39 +75,9 @@
             <version>${recovery.camel.version}</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>recovery-server</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>recovery-jms-adaptor</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.primefaces</groupId>
-            <artifactId>primefaces</artifactId>
-            <version>7.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.artezio</groupId>
-            <artifactId>recovery-rest-adapter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.artezio</groupId>
-            <artifactId>recovery-kafka-adapter</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.artezio</groupId>
-            <artifactId>recovery-model</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
     <build>
-        <plugins>      
+        <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
