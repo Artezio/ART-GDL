@@ -23,7 +23,7 @@ public class RestRoute extends SpringRouteBuilder {
     /**
      * POST endpoint ID.
      */
-    private static final String POST_ENDPOINT_ID = "postEndpoint";
+    public static final String POST_ENDPOINT_ID = "postEndpoint";
 
     /**
      * POST endpoint URL.
@@ -33,7 +33,7 @@ public class RestRoute extends SpringRouteBuilder {
     /**
      * REST route ID.
      */
-    private static final String REST_ROUTE_ID = "processPostRequest";
+    public static final String REST_ROUTE_ID = "processPostRequest";
 
     /**
      * REST route URL.

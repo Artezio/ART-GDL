@@ -1,11 +1,8 @@
 package com.artezio.recovery.client;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-
+import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -14,12 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
-import com.artezio.recovery.server.routes.RecoveryRoute;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Recovery request service class.
@@ -29,16 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class RecoveryRequestService {
-
-    /**
-     * JMS queue route URL.
-     */
-    private String JMS_QUEUE_ROUTE_URL = "jms:queue:p2p_recovery";
-
-    /**
-     * REST endpoint route URL.
-     */
-    private String REST_ROUTE_URL = "rest:post:recover";
 
     /**
      * REST endpoint host property.
@@ -59,27 +43,10 @@ public class RecoveryRequestService {
     private CamelContext context;
 
     /**
-     * Producer template.
-     */
-    private ProducerTemplate producer;
-
-    /**
      * Recovery request income route producer.
      */
     @Produce(uri = RecoveryRoute.INCOME_URL)
     private ProducerTemplate directProducer;
-
-    /**
-     * Sends recovery request depending on delivery method.
-     *
-     * @param request Recovery request that should be send.
-     * @param deliveryMethodType Delivery method type for choosing producer.
-     */
-    public void sendRequest(DeliveryMethodType deliveryMethodType, RecoveryRequest request)
-        throws RecoveryException {
-        ProducerTemplate producer = getProducer(deliveryMethodType);
-        producer.sendBody(request);
-    }
 
     /**
      * Sends recovery request.
@@ -90,18 +57,30 @@ public class RecoveryRequestService {
         directProducer.sendBody(request);
     }
 
+    /**
+     * Checks if camel is started recovery request.
+     *
+     * @return true if camel is started.
+     */
     public boolean isServerStarted() {
         return context.getStatus().isStarted();
     }
 
+    /**
+     * Stops camel and all its routes.
+     */
     public void stopRoutes() throws Exception {
-        List<Route> routes = context.getRoutes();
-        for (Route route : routes) {
+        for (Route route : context.getRoutes()) {
             context.stopRoute(route.getId());
         }
         context.stop();
     }
 
+    /**
+     * Stops camel and all its routes with defined timeouts for every route.
+     *
+     * @param timeouts the map with timeout values for all routes.
+     */
     public void stopRoutes(HashMap<String, Integer> timeouts) throws Exception {
         for (Entry<String, Integer> entry : timeouts.entrySet()) {
             if (context.getRoute(entry.getKey()) != null) {
@@ -111,42 +90,10 @@ public class RecoveryRequestService {
         context.stop();
     }
 
+    /**
+     * Starts camel context.
+     */
     public void startContext() throws Exception {
         context.start();
-    }
-
-    /**
-     * Returns producer depending on delivery type.
-     *
-     * @param deliveryMethodType delivery type.
-     * @return producer.
-     */
-    private ProducerTemplate getProducer(DeliveryMethodType deliveryMethodType)
-        throws RecoveryException {
-        ProducerTemplate producer = getProducerTemplate();
-        switch (deliveryMethodType) {
-            case JMS:
-                producer.setDefaultEndpointUri(JMS_QUEUE_ROUTE_URL);
-                break;
-            case REST:
-                producer.setDefaultEndpointUri(REST_ROUTE_URL + "?host=" + host + ":" + port);
-                break;
-            case DIRECT:
-                producer.setDefaultEndpointUri(RecoveryRoute.INCOME_URL);
-                break;
-            default:
-                throw new RecoveryException("Wrong delivery type");
-        }
-        log.info("Default Endpoint URI: " + producer.getDefaultEndpoint().getEndpointUri());
-        return producer;
-    }
-
-    /**
-     * Returns producer if not null or request the new one from camel context.
-     *
-     * @return producer.
-     */
-    private ProducerTemplate getProducerTemplate() {
-        return Optional.ofNullable(producer).orElseGet(() -> context.createProducerTemplate());
     }
 }

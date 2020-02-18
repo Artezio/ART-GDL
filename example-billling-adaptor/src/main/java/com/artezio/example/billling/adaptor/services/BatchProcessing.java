@@ -1,9 +1,19 @@
-/*
- */
+
 package com.artezio.example.billling.adaptor.services;
 
 
-import org.apache.camel.CamelContext;
+import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
+import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
+import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
+import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.client.RecoveryRequestService;
+import com.artezio.recovery.jms.adaptor.JMSRoute;
+import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.rest.route.RestRoute;
+import com.artezio.recovery.server.data.types.DeliveryMethodType;
+import com.artezio.recovery.server.routes.RecoveryRoute;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -14,19 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
-import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
-import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
-import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
-import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.client.RecoveryRequestService;
-import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
-import com.artezio.recovery.server.routes.RecoveryRoute;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
 
 /**
  * Batch operations with payment processing.
@@ -41,12 +39,6 @@ public class BatchProcessing {
      * Size of data page to upload payment request records.
      */
     private static final int PAGE_SIZE = 1000;
-
-    /**
-     * Current Apache Camel context.
-     */
-    @Autowired
-    private CamelContext camel;
     /**
      * Recovery records data access object.
      */
@@ -58,25 +50,23 @@ public class BatchProcessing {
     @Autowired
     private IPaymentRequestCrud daoPayments;
 
+    /**
+     * Recovery service which provides camel logic.
+     */
     @Autowired
     private RecoveryRequestService service;
+
     /**
-     * Recovery request income route producer.
+     * Recovery request jms route producer.
      */
-    @Produce(uri = RecoveryRoute.INCOME_URL)
-    private ProducerTemplate directProducer;
-//
-//    /**
-//     * Recovery request jms route producer.
-//     */
-//    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
-//    private ProducerTemplate jmsProducer;
-//
-//    /**
-//     * Recovery request rest route producer.
-//     */
-//    @Produce(uri = RestRoute.POST_ENDPOINT_URL + "?host=localhost:8080")
-//    private ProducerTemplate restProducer;
+    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
+    private ProducerTemplate jmsProducer;
+
+    /**
+     * Recovery request rest route producer.
+     */
+    @Produce(uri = RestRoute.POST_ENDPOINT_URL + "?host=localhost:8080")
+    private ProducerTemplate restProducer;
 
     /**
      * Count all processing recovery orders.
@@ -101,23 +91,16 @@ public class BatchProcessing {
      */
     public void stopAll() {
         try {
-//            camel.stopRoute(RecoveryRoute.INCOME_ID, 1, TimeUnit.MILLISECONDS);
-//            camel.stopRoute(RecoveryRoute.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
-//            camel.stopRoute(RecoveryRoute.TIMER_ID, 1, TimeUnit.MILLISECONDS);
-//            camel.stopRoute(RecoveryRoute.SEDA_ID, 5, TimeUnit.SECONDS);
-//            camel.stop();
-            service.stopRoutes();
+            service.stopRoutes(getRouteStopTimeouts());
             daoRecovery.deleteAll();
             daoPayments.cancelProcessing();
-//            camel.start();
             service.startContext();
         } catch (Exception e) {
             String error = e.getClass().getSimpleName()
-                + ": "
-                + e.getMessage();
+                    + ": "
+                    + e.getMessage();
             log.error(error);
         }
-
     }
 
     /**
@@ -126,20 +109,18 @@ public class BatchProcessing {
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
     public void startAll(DeliveryMethodType deliveryMethodType) {
-        System.out.println("FROM APPLICATION " +  camel.getName() +" " + camel.getVersion() + " " + camel.hashCode());
-//        if (service.isServerStarted()) {
-        if (camel.getStatus().isStarted()) {
+        if (service.isServerStarted()) {
             int pageNum = 0;
             Page<PaymentRequest> page = daoPayments.getNew(PageRequest.of(pageNum, PAGE_SIZE));
             while (page.hasContent()) {
                 for (PaymentRequest payment : page) {
                     try {
                         startRequest(payment, deliveryMethodType);
-                    } catch (CamelExecutionException | RecoveryException ex) {
+                    } catch (CamelExecutionException ex) {
                         Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                         String error = t.getClass().getSimpleName()
-                        + ": "
-                        + t.getMessage();
+                                + ": "
+                                + t.getMessage();
                         log.error(error);
                         payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                         payment.setDescription(error);
@@ -156,40 +137,59 @@ public class BatchProcessing {
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) throws RecoveryException {
-        if (payment == null) {
-            return;
+    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) {
+        if (payment != null) {
+            RecoveryRequest request = new RecoveryRequest();
+            request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+            request.setExternalId(String.valueOf(payment.getId()));
+            request.setLocker((payment.getLocker() == null)
+                    ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                    : payment.getLocker());
+            request.setMessage(payment.getOperationType().name());
+            request.setPause(payment.getPause());
+            request.setProcessingFrom(payment.getProcessingFrom());
+            request.setProcessingLimit(payment.getProcessingLimit());
+            request.setProcessingTo(payment.getProcessingTo());
+            request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+            request.setQueueParent(payment.getQueueParent());
+            sendRequest(request, deliveryMethodType);
         }
-        RecoveryRequest request = new RecoveryRequest();
-        request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
-        request.setExternalId(String.valueOf(payment.getId()));
-        request.setLocker((payment.getLocker() == null)
-            ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-            : payment.getLocker());
-        request.setMessage(payment.getOperationType().name());
-        request.setPause(payment.getPause());
-        request.setProcessingFrom(payment.getProcessingFrom());
-        request.setProcessingLimit(payment.getProcessingLimit());
-        request.setProcessingTo(payment.getProcessingTo());
-        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
-        request.setQueueParent(payment.getQueueParent());
-//        directProducer.sendBody(request);
-        service.sendRequest(request);
-//        service.sendRequest(deliveryMethodType, request);
-//        sendRequest(request, deliveryMethodType);
     }
-//
-//    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) {
-//        switch (deliveryMethodType) {
-//            case DIRECT:
-//                directProducer.sendBody(request);
-//                break;
-//            case JMS:
-//                jmsProducer.sendBody(request);
-//                break;
-//            case REST:
-//                restProducer.sendBody(request);
-//                break;
-//        }
-//    }
+
+    /**
+     * Sends recovery request via producer.
+     *
+     * @param request            recovery request which should be send.
+     * @param deliveryMethodType type of delivery to send request.
+     */
+    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) {
+        switch (deliveryMethodType) {
+            case DIRECT:
+                service.sendRequest(request);
+                break;
+            case JMS:
+                jmsProducer.sendBody(request);
+                break;
+            case REST:
+                restProducer.sendBody(request);
+                break;
+        }
+    }
+
+    /**
+     * Creates map with specific stop timeouts for camel routes.
+     *
+     * @return map route id - stop timeout.
+     */
+    private HashMap<String, Integer> getRouteStopTimeouts() {
+        HashMap<String, Integer> timeouts = new HashMap<>();
+        timeouts.put(RecoveryRoute.INCOME_ID, 1);
+        timeouts.put(RecoveryRoute.CLEANING_ID, 1);
+        timeouts.put(RecoveryRoute.TIMER_ID, 1);
+        timeouts.put(RecoveryRoute.SEDA_ID, 5000);
+        timeouts.put(JMSRoute.JMS_QUEUE_P2P_ROUTE_ID, 1);
+        timeouts.put(RestRoute.REST_ROUTE_ID, 1);
+        timeouts.put(RestRoute.POST_ENDPOINT_ID, 1);
+        return timeouts;
+    }
 }
