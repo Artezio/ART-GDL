@@ -3,18 +3,12 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
-import java.util.Date;
+import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -30,6 +24,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.Date;
+
 /**
  * Processing queue test.
  *
@@ -39,7 +35,7 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @SpringBootTest(
         classes = RecoveryServerApplication.class,
         properties = {
-            "logging.level.org.hibernate.SQL=INFO"
+                "logging.level.org.hibernate.SQL=INFO"
         }
 )
 @ComponentScan(
@@ -118,7 +114,7 @@ public class ProcessingQueueTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
      * Processing queue test definition.
      *
@@ -147,7 +143,7 @@ public class ProcessingQueueTest {
                         .to(MOCK_RESULT_URI);
             }
         });
-        callback.expectedHeaderValuesReceivedInAnyOrder(QUEUE_CHECK_HEADER, 
+        callback.expectedHeaderValuesReceivedInAnyOrder(QUEUE_CHECK_HEADER,
                 "p1",
                 "p1p2",
                 "p1p2p3",

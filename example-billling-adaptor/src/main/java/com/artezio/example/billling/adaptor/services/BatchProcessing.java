@@ -4,7 +4,7 @@ package com.artezio.example.billling.adaptor.services;
 
 import java.util.concurrent.TimeUnit;
 
-import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.route.RestRoute;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -154,7 +154,7 @@ public class BatchProcessing {
         if (payment == null) {
             return;
         }
-        RecoveryRequest request = new RecoveryRequest();
+        RecoveryRequestDTO request = new RecoveryRequestDTO();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
@@ -170,10 +170,10 @@ public class BatchProcessing {
         sendRequest(request, deliveryMethodType);
     }
 
-    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) {
+    private void sendRequest(RecoveryRequestDTO request, DeliveryMethodType deliveryMethodType) {
         switch (deliveryMethodType) {
             case DIRECT:
-                directProducer.sendBody(request);
+                directProducer.sendBody(request.getRecoveryRequest());
                 break;
             case JMS:
                 jmsProducer.sendBody(request);

@@ -3,16 +3,11 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -38,8 +33,8 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @SpringBootTest(
         classes = RecoveryServerApplication.class,
         properties = {
-            "com.artezio.recovery.seda.consumers=20",
-            "spring.datasource.hikari.maximumPoolSize=20"
+                "com.artezio.recovery.seda.consumers=20",
+                "spring.datasource.hikari.maximumPoolSize=20"
         }
 )
 @ComponentScan(
@@ -97,7 +92,7 @@ public class MassLoadingSimpleTest {
      */
     @Autowired
     private RecoveryOrderRepository dao;
-    
+
     /**
      * Recovery request income route producer.
      */
@@ -115,7 +110,7 @@ public class MassLoadingSimpleTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
      * Mass loading test for simple recovery requests definition.
      *
@@ -148,7 +143,7 @@ public class MassLoadingSimpleTest {
             DefaultTransactionDefinition def = new DefaultTransactionDefinition();
             def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
             TransactionStatus status = transactionManager.getTransaction(def);
-                producer.sendBody(req);
+            producer.sendBody(req);
             transactionManager.commit(status);
         }
         Thread.sleep(ENDPOINT_TIMEOUT);

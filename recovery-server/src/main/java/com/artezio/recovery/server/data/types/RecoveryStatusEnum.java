@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.model.types;
+package com.artezio.recovery.server.data.types;
 
 /**
  * Recovery request processing status enumeration.

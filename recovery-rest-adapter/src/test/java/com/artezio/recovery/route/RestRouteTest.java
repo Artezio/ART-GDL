@@ -1,8 +1,8 @@
 package com.artezio.recovery.route;
 
+import com.artezio.recovery.model.RecoveryOrderDTO;
+import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
@@ -86,7 +86,7 @@ public class RestRouteTest {
                         log.info(exchange.getExchangeId()
                             + ": "
                             + Thread.currentThread().getName());
-                        RecoveryOrder order = exchange.getIn().getBody(RecoveryOrder.class);
+                        RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
                         log.info("Order message: " + order.getMessage());
 
                         // Long term process emulation.
@@ -98,7 +98,7 @@ public class RestRouteTest {
 
         callback.expectedMessageCount(1);
 
-        RecoveryRequest req = new RecoveryRequest();
+        RecoveryRequestDTO req = new RecoveryRequestDTO();
         req.setCallbackUri(CALLBACK_URI);
         req.setMessage("Hello from Rest Producer!");
         repository.deleteAll();

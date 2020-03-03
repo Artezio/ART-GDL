@@ -3,20 +3,15 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.ClientResponse;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.ClientResponse;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.model.types.ClientResultEnum;
-import com.artezio.recovery.model.types.ProcessingCodeEnum;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
+import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
+import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -96,7 +91,7 @@ public class ExpiredByNumberTest {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository dao;
+    private RecoveryOrderRepository repository;
 
     /**
      * Recovery request income route producer.
@@ -154,7 +149,7 @@ public class ExpiredByNumberTest {
         RecoveryRequest req = new RecoveryRequest();
         req.setCallbackUri(CALLBACK_URI);
         req.setProcessingLimit(PROCESSING_LIMIT);
-        dao.deleteAll();
+        repository.deleteAll();
         DefaultTransactionDefinition def = new DefaultTransactionDefinition();
         def.setIsolationLevel(DefaultTransactionDefinition.ISOLATION_SERIALIZABLE);
         TransactionStatus status = transactionManager.getTransaction(def);

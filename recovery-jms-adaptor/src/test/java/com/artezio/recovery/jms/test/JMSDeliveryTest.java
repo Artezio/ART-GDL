@@ -2,9 +2,9 @@ package com.artezio.recovery.jms.test;
 
 import com.artezio.recovery.jms.adaptor.JMSRoute;
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
+import com.artezio.recovery.model.RecoveryOrderDTO;
+import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
@@ -14,29 +14,11 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.annotation.Transactional;
 
 @RunWith(CamelSpringBootRunner.class)
 @SpringBootTest(classes = RecoveryJMSAdaptorApplication.class)
-@ComponentScan(
-        basePackages = {
-                "com.artezio.recovery"
-        }
-)
-@EntityScan(
-        basePackages = {
-                "com.artezio.recovery"
-        }
-)
-@EnableJpaRepositories(
-        basePackages = {
-                "com.artezio.recovery"
-        }
-)
 @MockEndpoints
 @Slf4j
 @Transactional
@@ -103,7 +85,7 @@ public class JMSDeliveryTest {
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
-                            RecoveryOrder order = exchange.getIn().getBody(RecoveryOrder.class);
+                            RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
                             log.info("Order message: " + order.getMessage());
 
                             // Long term process emulation.
@@ -115,7 +97,7 @@ public class JMSDeliveryTest {
 
         callback.expectedMessageCount(1);
 
-        RecoveryRequest req = new RecoveryRequest();
+        RecoveryRequestDTO req = new RecoveryRequestDTO();
         req.setCallbackUri(CALLBACK_URI);
         req.setMessage("Hello from JMS Producer!");
         dao.deleteAll();

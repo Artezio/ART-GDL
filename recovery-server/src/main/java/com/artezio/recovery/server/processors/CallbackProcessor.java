@@ -1,18 +1,14 @@
 package com.artezio.recovery.server.processors;
 
-import static com.artezio.recovery.model.types.ProcessingCodeEnum.EXPIRED_BY_DATE;
-import static com.artezio.recovery.model.types.ProcessingCodeEnum.EXPIRED_BY_NUMBER;
-import static com.artezio.recovery.model.types.RecoveryStatusEnum.ERROR;
-import static com.artezio.recovery.model.types.RecoveryStatusEnum.SUCCESS;
-
-import java.util.Date;
-import java.util.UUID;
-
-import org.apache.camel.CamelContext;
-import org.apache.camel.CamelExecutionException;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
-import org.apache.camel.ProducerTemplate;
+import com.artezio.recovery.server.config.PauseConfig;
+import com.artezio.recovery.server.data.model.ClientResponse;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
+import com.artezio.recovery.server.data.types.HoldingCodeEnum;
+import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -24,15 +20,13 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.artezio.recovery.server.config.PauseConfig;
-import com.artezio.recovery.model.ClientResponse;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.types.ClientResultEnum;
-import com.artezio.recovery.model.types.HoldingCodeEnum;
-import com.artezio.recovery.model.types.ProcessingCodeEnum;
+import java.util.Date;
+import java.util.UUID;
 
-import lombok.extern.slf4j.Slf4j;
+import static com.artezio.recovery.server.data.types.ProcessingCodeEnum.EXPIRED_BY_DATE;
+import static com.artezio.recovery.server.data.types.ProcessingCodeEnum.EXPIRED_BY_NUMBER;
+import static com.artezio.recovery.server.data.types.RecoveryStatusEnum.ERROR;
+import static com.artezio.recovery.server.data.types.RecoveryStatusEnum.SUCCESS;
 
 /**
  * Recovery callback processor.
@@ -223,10 +217,10 @@ public class CallbackProcessor implements Processor {
         boolean success = true;
         if (order.getQueue() != null || order.getQueueParent() != null) {
             Page<RecoveryOrder> page = repository.findTopOfQueue(
-                PageRequest.of(0, 1),
-                order.getQueue(),
-                order.getQueueParent(),
-                order.getOrderCreated());
+                    PageRequest.of(0, 1),
+                    order.getQueue(),
+                    order.getQueueParent(),
+                    order.getOrderCreated());
             if (page != null && !page.isEmpty()) {
                 success = false;
                 RecoveryOrder top = page.getContent().get(0);
@@ -261,9 +255,9 @@ public class CallbackProcessor implements Processor {
                 responseBody = producer.requestBody(order.getCallbackUri(), order);
             } catch (CamelExecutionException e) {
                 String executionError =
-                    (e.getCause() != null ? e.getCause().getClass().getSimpleName() : e.getClass().getSimpleName())
-                    + ": "
-                    + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
+                        (e.getCause() != null ? e.getCause().getClass().getSimpleName() : e.getClass().getSimpleName())
+                                + ": "
+                                + (e.getCause() != null ? e.getCause().getMessage() : e.getMessage());
                 order.setDescription(executionError);
                 order.setCode(ProcessingCodeEnum.ERROR_DELIVERY);
                 break main;
@@ -276,7 +270,7 @@ public class CallbackProcessor implements Processor {
             } else {
                 order.setCode(ProcessingCodeEnum.FATAL_WRONG_RESPONSE);
                 order.setDescription("Recovery callback response has a wrong type: "
-                    + responseBody.getClass().getCanonicalName());
+                        + responseBody.getClass().getCanonicalName());
                 order.setStatus(ERROR);
                 break main;
             }

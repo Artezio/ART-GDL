@@ -3,20 +3,14 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.model.ClientResponse;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.ClientResponse;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.model.types.ClientResultEnum;
-import java.util.Date;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
+import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -31,6 +25,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import java.util.Date;
 
 /**
  * Processing delay by pause rule test.
@@ -97,10 +93,10 @@ public class ProcessingDelayByPauseTest {
     /**
      * Delay pause rule for recovery processing.
      */
-    private static final String PAUSE_RULE = "1:" + PAUSE_FROM_1_TO_5_SEC 
+    private static final String PAUSE_RULE = "1:" + PAUSE_FROM_1_TO_5_SEC
             + "; 5:" + PAUSE_FROM_5_TO_7_SEC
             + "; 7:" + PAUSE_FROM_7;
-            
+
     /**
      * Current Apache Camel context.
      */
@@ -111,7 +107,7 @@ public class ProcessingDelayByPauseTest {
      */
     @Autowired
     private RecoveryOrderRepository dao;
-    
+
     /**
      * Recovery request income route producer.
      */
@@ -167,7 +163,7 @@ public class ProcessingDelayByPauseTest {
                             log.info(Thread.currentThread().getName()
                                     + "; count = " + count
                                     + "; delayCheck = " + delayCheck
-                                    + "; modified = " + modified 
+                                    + "; modified = " + modified
                                     + "; delayed = " + delayed
                                     + "; now = " + now);
                             // Long term process emulation.
@@ -176,7 +172,7 @@ public class ProcessingDelayByPauseTest {
                         .to(MOCK_RESULT_URI);
             }
         });
-        callback.expectedHeaderValuesReceivedInAnyOrder(DELAY_CHECK_HEADER, 
+        callback.expectedHeaderValuesReceivedInAnyOrder(DELAY_CHECK_HEADER,
                 Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE,
                 Boolean.TRUE, Boolean.TRUE, Boolean.TRUE, Boolean.TRUE);
         RecoveryRequest req = new RecoveryRequest();

@@ -1,15 +1,15 @@
 package com.artezio.recovery.rest.route;
 
-import org.apache.camel.model.rest.RestBindingMode;
-import org.apache.camel.spring.SpringRouteBuilder;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
-
-import com.artezio.recovery.model.RecoveryRequest;
+import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.processor.UnwrappingProcessor;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
 import com.artezio.recovery.server.routes.RecoveryRoute;
-
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.model.rest.RestBindingMode;
+import org.apache.camel.spring.SpringRouteBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * Recovery Apache Camel rest route class.
@@ -52,23 +52,30 @@ public class RestRoute extends SpringRouteBuilder {
     @Value("${rest.server.port:8080}")
     private String serverPort;
 
+    /**
+     * Processor for unwrapping from DTO.
+     */
+    @Autowired
+    private UnwrappingProcessor unwrapping;
+
     @Override
     public void configure() {
 
         restConfiguration()
-            .component("restlet")
-            .host(serverHost).port(serverPort)
-            .bindingMode(RestBindingMode.auto);
+                .component("restlet")
+                .host(serverHost).port(serverPort)
+                .bindingMode(RestBindingMode.auto);
 
         rest()
-            .post("/recover").id(POST_ENDPOINT_ID)
-            .consumes("application/json")
-            .type(RecoveryRequest.class)
-            .to(REST_ROUTE_URL);
+                .post("/recover").id(POST_ENDPOINT_ID)
+                .consumes("application/json")
+                .type(RecoveryRequestDTO.class)
+                .to(REST_ROUTE_URL);
 
         from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
-            .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-            .to("log:com.artezio.recovery?level=DEBUG")
-            .to(RecoveryRoute.INCOME_URL);
+                .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
+                .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
+                .to("log:com.artezio.recovery?level=DEBUG")
+                .to(RecoveryRoute.INCOME_URL);
     }
 }
