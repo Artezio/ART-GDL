@@ -2,9 +2,12 @@ package com.artezio.recovery.rest.route;
 
 import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.processor.UnwrappingProcessor;
+import com.artezio.recovery.rest.bean.RestCallbackBean;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
+import com.artezio.recovery.server.data.model.ClientResponse;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +44,16 @@ public class RestRoute extends SpringRouteBuilder {
     private static final String REST_ROUTE_URL = "direct://" + REST_ROUTE_ID;
 
     /**
+     * REST callback route ID.
+     */
+    private static final String REST_CALLBACK_ROUTE_ID = "restCallbackRoute";
+
+    /**
+     * REST callback route URL.
+     */
+    public static final String REST_CALLBACK_ROUTE_URL = "direct://" + REST_CALLBACK_ROUTE_ID;
+
+    /**
      * Server host property.
      */
     @Value("${rest.server.host:localhost}")
@@ -58,11 +71,16 @@ public class RestRoute extends SpringRouteBuilder {
     @Autowired
     private UnwrappingProcessor unwrapping;
 
+    /**
+     * Recovery REST callback bean.
+     */
+    @Autowired
+    private RestCallbackBean callbackBean;
+
     @Override
     public void configure() {
 
         restConfiguration()
-                .component("restlet")
                 .host(serverHost).port(serverPort)
                 .bindingMode(RestBindingMode.auto);
 
@@ -75,7 +93,16 @@ public class RestRoute extends SpringRouteBuilder {
         from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
                 .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
-                .to("log:com.artezio.recovery?level=DEBUG")
+                .bean(callbackBean, "extractCallbackUri").id(RestCallbackBean.class.getSimpleName())
+                .to("log:com.artezio.recovery.rest?level=DEBUG")
                 .to(RecoveryRoute.INCOME_URL);
+
+        from(REST_CALLBACK_ROUTE_URL)
+                .bean(callbackBean, "insertCallbackUri").id(RestCallbackBean.class.getSimpleName())
+                .choice()
+                .when(header("callbackUri").isEqualTo(null)).endChoice()
+                .otherwise()
+                .toD("${header.callbackUri}")
+                .unmarshal().json(JsonLibrary.Jackson, ClientResponse.class);
     }
 }

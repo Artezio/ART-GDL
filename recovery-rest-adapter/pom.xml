@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.apache.camel</groupId>
-            <artifactId>camel-restlet</artifactId>
+            <artifactId>camel-jetty9-starter</artifactId>
             <version>${recovery.camel.version}</version>
         </dependency>
         <dependency>

@@ -35,5 +35,11 @@ It can be launched with the following command:
 
    * rest.server.host={your server host} (default: localhost)
    * rest.server.port={your server port} (default: 8080)
+   
+   For more flexibility in configuring REST connection you can add following properties:
+   
+   * camel.component.jetty.continuation-timeout={timeout in ms} (default: 30000)
+   * camel.component.jetty.min-threads={minimum number of threads} (default: 5)
+   * camel.component.jetty.max-threads={maximum number of threads} (default: 25)
 
 Please follow the README instructions from recovery-server to learn how to send messages via Camel routes.

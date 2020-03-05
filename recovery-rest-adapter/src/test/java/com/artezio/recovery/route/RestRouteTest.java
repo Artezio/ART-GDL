@@ -1,19 +1,27 @@
 package com.artezio.recovery.route;
 
+import com.artezio.recovery.model.ClientResponseDTO;
 import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
 import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jetty9.JettyHttpComponent9;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
 import org.apache.camel.test.spring.MockEndpoints;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
+
+import static com.artezio.recovery.rest.route.RestRoute.REST_CALLBACK_ROUTE_URL;
 
 /**
  * Rest route test.
@@ -60,6 +68,24 @@ public class RestRouteTest {
     private MockEndpoint callback;
 
     /**
+     * Minimum number of threads in server thread pool.
+     */
+    @Value("${camel.component.jetty.min-threads}")
+    private Integer minThreads;
+
+    /**
+     * Maximum number of threads in server thread pool.
+     */
+    @Value("${camel.component.jetty.max-threads}")
+    private Integer maxThreads;
+
+    /**
+     * Connection timeout property.
+     */
+    @Value("${camel.component.jetty.continuation-timeout}")
+    private Long timeout;
+
+    /**
      * Timeout in milliseconds to emulate long term remote execution.
      */
     private static final int PRODUCER_TIMEOUT = 5_000;
@@ -79,27 +105,35 @@ public class RestRouteTest {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
+                rest()
+                        .post("/callback").id("TestCallbackRoute")
+                        .consumes("application/json")
+                        .type(RecoveryOrder.class)
+                        .to(CALLBACK_URI);
                 from(CALLBACK_URI)
-                    .routeId("TestCallback")
-                    .setExchangePattern(ExchangePattern.InOut)
-                    .process((Exchange exchange) -> {
-                        log.info(exchange.getExchangeId()
-                            + ": "
-                            + Thread.currentThread().getName());
-                        RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
-                        log.info("Order message: " + order.getMessage());
+                        .routeId("TestCallback")
+                        .setExchangePattern(ExchangePattern.InOut)
+                        .process((Exchange exchange) -> {
+                            log.info(exchange.getExchangeId()
+                                    + ": "
+                                    + Thread.currentThread().getName());
+                            RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
+                            log.info("Order message: " + order.getMessage());
 
-                        // Long term process emulation.
-                        Thread.sleep(PRODUCER_TIMEOUT);
-                    }).id("TestProcessor")
-                    .to(MOCK_RESULT_URI);
+                            // Long term process emulation.
+                            Thread.sleep(PRODUCER_TIMEOUT);
+                            ClientResponseDTO responseDTO = new ClientResponseDTO();
+                            responseDTO.setDescription("Test Description");
+                            responseDTO.setResult(ClientResultEnum.SUCCESS);
+                            exchange.getIn().setBody(responseDTO.getResponse());
+                        }).id("TestProcessor")
+                        .to(MOCK_RESULT_URI);
             }
         });
-
         callback.expectedMessageCount(1);
 
         RecoveryRequestDTO req = new RecoveryRequestDTO();
-        req.setCallbackUri(CALLBACK_URI);
+        req.setCallbackUri("rest:post:callback?host=localhost:8080");
         req.setMessage("Hello from Rest Producer!");
         repository.deleteAll();
 
@@ -107,6 +141,9 @@ public class RestRouteTest {
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
+        Assert.assertEquals(minThreads, camel.getComponent("jetty", JettyHttpComponent9.class).getMinThreads());
+        Assert.assertEquals(maxThreads, camel.getComponent("jetty", JettyHttpComponent9.class).getMaxThreads());
+        Assert.assertEquals(timeout, camel.getComponent("jetty", JettyHttpComponent9.class).getContinuationTimeout());
         camel.stop();
     }
 }
