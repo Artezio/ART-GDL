@@ -66,7 +66,7 @@ public class BatchProcessing {
     /**
      * Recovery request jms route producer.
      */
-    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
+    @Produce(uri = "jms:p2p_recovery")
     private ProducerTemplate jmsProducer;
 
     /**

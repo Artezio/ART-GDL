@@ -17,5 +17,4 @@ public class TransactionSupportConfig {
         propagationRequired.setPropagationBehaviorName(PROPAGATIONTYPE_PROPAGATION_REQUIRED);
         return propagationRequired;
     }
-
 }

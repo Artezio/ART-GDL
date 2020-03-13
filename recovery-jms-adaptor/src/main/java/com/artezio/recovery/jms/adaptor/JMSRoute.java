@@ -6,6 +6,7 @@ import com.artezio.recovery.server.routes.RecoveryRoute;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 
@@ -16,11 +17,13 @@ public class JMSRoute extends SpringRouteBuilder {
     /**
      * JMS Point to Point Route ID.
      */
-    public static final String JMS_QUEUE_P2P_ROUTE_ID = "queue:p2p_recovery";
+    public static final String JMS_ROUTE_ID = "JmsQueueRoute";
+
     /**
-     * JMS Point to Point Route URL.
+     * JMS input queue URL.
      */
-    public static final String JMS_QUEUE_ROUTE_URL = "jms:" + JMS_QUEUE_P2P_ROUTE_ID;
+    @Value("${input.queue.name:jms:p2p_recovery}")
+    private String inputQueueURL;
 
     /**
      * Processor for unwrapping from DTO.
@@ -30,8 +33,8 @@ public class JMSRoute extends SpringRouteBuilder {
 
     @Override
     public void configure() throws Exception {
-        from(JMS_QUEUE_ROUTE_URL).transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-                .routeId(JMS_QUEUE_P2P_ROUTE_ID)
+        from(inputQueueURL).transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
+                .routeId(JMS_ROUTE_ID)
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
                 .to(RecoveryRoute.INCOME_URL);
     }

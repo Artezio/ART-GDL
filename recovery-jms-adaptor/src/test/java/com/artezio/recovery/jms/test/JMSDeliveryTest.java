@@ -1,6 +1,5 @@
 package com.artezio.recovery.jms.test;
 
-import com.artezio.recovery.jms.adaptor.JMSRoute;
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
 import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.model.RecoveryRequestDTO;
@@ -48,7 +47,7 @@ public class JMSDeliveryTest {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
+    @Produce(uri = "jms:p2p_recovery")
     private ProducerTemplate producer;
 
     /**
@@ -78,6 +77,8 @@ public class JMSDeliveryTest {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
+                from("jms:callback_recovery").routeId("TestJmsCallbackRoute")
+                        .to(CALLBACK_URI);
                 from(CALLBACK_URI)
                         .routeId("TestCallback")
                         .setExchangePattern(ExchangePattern.InOut)
@@ -98,7 +99,7 @@ public class JMSDeliveryTest {
         callback.expectedMessageCount(1);
 
         RecoveryRequestDTO req = new RecoveryRequestDTO();
-        req.setCallbackUri(CALLBACK_URI);
+        req.setCallbackUri("jms:callback_recovery");
         req.setMessage("Hello from JMS Producer!");
         dao.deleteAll();
         producer.sendBody(req);
