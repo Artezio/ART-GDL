@@ -1,13 +1,12 @@
 /*
  */
-package com.artezio.recovery.model;
+package com.artezio.recovery.server.data.model;
 
-import java.io.Serializable;
-import javax.xml.bind.annotation.XmlRootElement;
-
-import com.artezio.recovery.model.types.ClientResultEnum;
-
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.Data;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
 
 /**
  * Recovery client response message.

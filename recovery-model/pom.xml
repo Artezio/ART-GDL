@@ -25,6 +25,13 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- Internal dependencies -->
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>recovery-server</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- External dependencies -->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>

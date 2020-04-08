@@ -1,12 +1,13 @@
 /*
  */
-package com.artezio.recovery.model;
+package com.artezio.recovery.server.data.model;
 
-import java.io.Serializable;
-import java.util.Date;
-import javax.xml.bind.annotation.XmlRootElement;
 import lombok.Data;
 import lombok.ToString;
+
+import javax.xml.bind.annotation.XmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
 
 /**
  * Recovery request data structure for DB storing.

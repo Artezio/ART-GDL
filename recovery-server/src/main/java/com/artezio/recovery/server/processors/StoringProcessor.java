@@ -1,15 +1,13 @@
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
-import com.artezio.recovery.model.RecoveryOrder;
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.model.types.HoldingCodeEnum;
 import com.artezio.recovery.server.config.PauseConfig;
-import com.artezio.recovery.model.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.exception.RecoveryException;
-import com.artezio.recovery.model.types.RecoveryStatusEnum;
-import java.util.Date;
-import java.util.UUID;
+import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.types.HoldingCodeEnum;
+import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
+import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -20,6 +18,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Recovery request storing processor.
@@ -67,7 +68,7 @@ public class StoringProcessor implements Processor {
      * Make DB order record from recovery client request.
      *
      * @param exchange Apache Camel ESB exchange message.
-     * @param request Recovery client request message.
+     * @param request  Recovery client request message.
      * @return Recovery DB order record.
      * @throws Exception @see Exception
      */
@@ -89,26 +90,26 @@ public class StoringProcessor implements Processor {
         }
         Date now = new Date(System.currentTimeMillis());
         return RecoveryOrder.builder()
-            .callbackUri(request.getCallbackUri())
-            .code(ProcessingCodeEnum.NEW)
-            .description("Order stored.")
-            .externalId(request.getExternalId())
-            .holdingCode(HoldingCodeEnum.NO_HOLDING)
-            .locker(request.getLocker() == null ? UUID.randomUUID().toString() : request.getLocker())
-            .lockerVersion(new UUID(0, 0).toString())
-            .message(request.getMessage())
-            .orderCreated(now)
-            .orderModified(now)
-            .orderOpened(now)
-            .orderUpdated(now)
-            .pause(pauseRule.isEmpty() ? null : pauseRule)
-            .processingCount(0)
-            .processingFrom(request.getProcessingFrom())
-            .processingLimit(request.getProcessingLimit())
-            .processingTo(request.getProcessingTo())
-            .queue(request.getQueue())
-            .queueParent(request.getQueueParent())
-            .status(RecoveryStatusEnum.PROCESSING)
-            .versionId(null).build();
+                .callbackUri(request.getCallbackUri())
+                .code(ProcessingCodeEnum.NEW)
+                .description("Order stored.")
+                .externalId(request.getExternalId())
+                .holdingCode(HoldingCodeEnum.NO_HOLDING)
+                .locker(request.getLocker() == null ? UUID.randomUUID().toString() : request.getLocker())
+                .lockerVersion(new UUID(0, 0).toString())
+                .message(request.getMessage())
+                .orderCreated(now)
+                .orderModified(now)
+                .orderOpened(now)
+                .orderUpdated(now)
+                .pause(pauseRule.isEmpty() ? null : pauseRule)
+                .processingCount(0)
+                .processingFrom(request.getProcessingFrom())
+                .processingLimit(request.getProcessingLimit())
+                .processingTo(request.getProcessingTo())
+                .queue(request.getQueue())
+                .queueParent(request.getQueueParent())
+                .status(RecoveryStatusEnum.PROCESSING)
+                .versionId(null).build();
     }
 }

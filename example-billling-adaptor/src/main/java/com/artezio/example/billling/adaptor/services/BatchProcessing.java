@@ -4,6 +4,8 @@ package com.artezio.example.billling.adaptor.services;
 
 import java.util.concurrent.TimeUnit;
 
+import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.rest.route.RestRoute;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
@@ -21,8 +23,6 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.model.RecoveryRequest;
-import com.artezio.recovery.rest.route.RestRoute;
 import com.artezio.recovery.server.data.types.DeliveryMethodType;
 import com.artezio.recovery.server.routes.RecoveryRoute;
 
@@ -66,7 +66,7 @@ public class BatchProcessing {
     /**
      * Recovery request jms route producer.
      */
-    @Produce(uri = JMSRoute.JMS_QUEUE_ROUTE_URL)
+    @Produce(uri = "jms:p2p_recovery")
     private ProducerTemplate jmsProducer;
 
     /**
@@ -114,8 +114,8 @@ public class BatchProcessing {
             camel.start();
         } catch (Exception e) {
             String error = e.getClass().getSimpleName()
-                + ": "
-                + e.getMessage();
+                    + ": "
+                    + e.getMessage();
             log.error(error);
         }
 
@@ -139,8 +139,8 @@ public class BatchProcessing {
                 } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
-                        + ": "
-                        + t.getMessage();
+                            + ": "
+                            + t.getMessage();
                     log.error(error);
                     payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                     payment.setDescription(error);
@@ -160,12 +160,12 @@ public class BatchProcessing {
         if (payment == null) {
             return;
         }
-        RecoveryRequest request = new RecoveryRequest();
+        RecoveryRequestDTO request = new RecoveryRequestDTO();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
-            ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
-            : payment.getLocker());
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
         request.setMessage(payment.getOperationType().name());
         request.setPause(payment.getPause());
         request.setProcessingFrom(payment.getProcessingFrom());
@@ -176,10 +176,10 @@ public class BatchProcessing {
         sendRequest(request, deliveryMethodType);
     }
 
-    private void sendRequest(RecoveryRequest request, DeliveryMethodType deliveryMethodType) {
+    private void sendRequest(RecoveryRequestDTO request, DeliveryMethodType deliveryMethodType) {
         switch (deliveryMethodType) {
             case DIRECT:
-                directProducer.sendBody(request);
+                directProducer.sendBody(request.getRecoveryRequest());
                 break;
             case JMS:
                 jmsProducer.sendBody(request);
