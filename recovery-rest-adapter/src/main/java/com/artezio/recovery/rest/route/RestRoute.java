@@ -103,6 +103,9 @@ public class RestRoute extends SpringRouteBuilder {
                 .when(header("callbackUri").isEqualTo(null)).endChoice()
                 .otherwise()
                 .toD("${header.callbackUri}")
+                .choice()
+                .when(body().isInstanceOf(ClientResponse.class)).endChoice()
+                .otherwise()
                 .unmarshal().json(JsonLibrary.Jackson, ClientResponse.class);
     }
 }
