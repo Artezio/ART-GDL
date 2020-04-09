@@ -1,6 +1,7 @@
 package com.artezio.recovery.model;
 
 import com.artezio.recovery.server.data.model.RecoveryOrder;
+import lombok.Getter;
 import lombok.experimental.Delegate;
 
 public class RecoveryOrderDTO {
@@ -13,6 +14,7 @@ public class RecoveryOrderDTO {
         this.recoveryOrder = recoveryOrder;
     }
 
+    @Getter
     @Delegate(types = RecoveryOrder.class)
     private RecoveryOrder recoveryOrder;
 

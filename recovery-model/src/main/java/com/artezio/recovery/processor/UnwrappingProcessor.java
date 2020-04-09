@@ -19,7 +19,7 @@ public class UnwrappingProcessor implements Processor {
     @Override
     public void process(Exchange exchange) throws Exception {
         if (exchange.getIn().getBody() instanceof RecoveryRequestDTO) {
-            RecoveryRequestDTO request = (RecoveryRequestDTO) exchange.getIn().getBody();
+            RecoveryRequestDTO request = exchange.getIn().getBody(RecoveryRequestDTO.class);
             exchange.getIn().setBody(request.getRecoveryRequest());
         }
     }

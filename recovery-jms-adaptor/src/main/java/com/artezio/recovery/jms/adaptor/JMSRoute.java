@@ -36,6 +36,7 @@ public class JMSRoute extends SpringRouteBuilder {
         from(inputQueueURL).transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .routeId(JMS_ROUTE_ID)
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
+                .to("log:com.artezio.recovery.jms?level=DEBUG")
                 .to(RecoveryRoute.INCOME_URL);
     }
 }
