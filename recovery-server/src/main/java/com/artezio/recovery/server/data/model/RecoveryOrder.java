@@ -5,10 +5,8 @@ package com.artezio.recovery.server.data.model;
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -53,11 +51,11 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(indexes = {
-    @Index(name = "idx_gd_status", unique = false, columnList = "status"),
-    @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
-    @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerVersion"),
-    @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
-    @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
+        @Index(name = "idx_gd_status", unique = false, columnList = "status"),
+        @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
+        @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerVersion"),
+        @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
+        @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
 })
 public class RecoveryOrder implements Serializable {
 
@@ -117,4 +115,9 @@ public class RecoveryOrder implements Serializable {
     @Column(length = 128)
     private String versionId;
 
+    @SneakyThrows
+    @Override
+    public String toString() {
+        return new ObjectMapper().writeValueAsString(this);
+    }
 }
