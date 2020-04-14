@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.model;
+package com.artezio.recovery.server.data.messages;
 
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.Data;

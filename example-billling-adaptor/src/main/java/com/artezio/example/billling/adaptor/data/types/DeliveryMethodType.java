@@ -1,4 +1,4 @@
-package com.artezio.recovery.server.data.types;
+package com.artezio.example.billling.adaptor.data.types;
 
 public enum DeliveryMethodType {
     DIRECT,

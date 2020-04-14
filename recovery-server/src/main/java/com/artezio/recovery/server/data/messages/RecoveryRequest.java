@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.model;
+package com.artezio.recovery.server.data.messages;
 
 import lombok.Data;
 import lombok.ToString;

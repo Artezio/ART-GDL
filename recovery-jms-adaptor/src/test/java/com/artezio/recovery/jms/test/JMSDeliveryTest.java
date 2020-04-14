@@ -3,7 +3,7 @@ package com.artezio.recovery.jms.test;
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
 import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.model.RecoveryRequestDTO;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
@@ -42,7 +42,7 @@ public class JMSDeliveryTest {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository dao;
+    private IRecoveryOrderCrud dao;
 
     /**
      * Recovery request income route producer.

@@ -14,7 +14,7 @@ import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.model.ClientResponseDTO;
 import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.model.types.ClientResultEnumDTO;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;

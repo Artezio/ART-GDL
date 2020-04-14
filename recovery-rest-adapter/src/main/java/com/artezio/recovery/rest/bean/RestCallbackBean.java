@@ -1,6 +1,6 @@
 package com.artezio.recovery.rest.bean;
 
-import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import org.apache.camel.Exchange;
 import org.springframework.stereotype.Component;
 

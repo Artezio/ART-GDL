@@ -1,9 +1,9 @@
 /*
  */
-package com.artezio.recovery.server.routes;
+package com.artezio.recovery.server.context;
 
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.processors.CallbackProcessor;
 import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @Slf4j
-public class RecoveryRoute extends SpringRouteBuilder {
+public class RecoveryRoutes extends SpringRouteBuilder {
 
     /**
      * Timer route ID.
@@ -112,7 +112,7 @@ public class RecoveryRoute extends SpringRouteBuilder {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository dao;
+    private IRecoveryOrderCrud dao;
 
     /**
      * Recovery Apache Camel routes definition.

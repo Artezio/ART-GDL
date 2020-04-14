@@ -1,6 +1,6 @@
 package com.artezio.recovery.server.processors;
 
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 
 import java.util.Date;
 
@@ -31,7 +31,7 @@ public class ResumingProcessor implements Processor {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository repository;
+    private IRecoveryOrderCrud dao;
 
     /**
      * Property of resuming timeout in minutes.
@@ -50,7 +50,7 @@ public class ResumingProcessor implements Processor {
     public void process(Exchange exchange) throws Exception {
         Date resumingDate = new Date(System.currentTimeMillis() - resumingMin * 60_000);
         log.trace(resumingDate.toString());
-        repository.resumeOrders(resumingDate);
+        dao.resumeOrders(resumingDate);
     }
 
 }

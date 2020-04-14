@@ -1,6 +1,6 @@
 package com.artezio.recovery.model;
 
-import com.artezio.recovery.server.data.model.RecoveryRequest;
+import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 

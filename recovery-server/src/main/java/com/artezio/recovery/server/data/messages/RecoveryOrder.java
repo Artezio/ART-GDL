@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.model;
+package com.artezio.recovery.server.data.messages;
 
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;

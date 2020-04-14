@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.config;
+package com.artezio.recovery.server.data.types;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import com.artezio.recovery.server.data.exception.RecoveryException;
 
 import lombok.Getter;
 

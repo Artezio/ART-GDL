@@ -3,7 +3,7 @@ package com.artezio.recovery.kafka.route;
 import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.processor.UnwrappingProcessor;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -51,6 +51,6 @@ public class KafkaRoute extends SpringRouteBuilder {
                 .unmarshal().json(JsonLibrary.Jackson, RecoveryRequestDTO.class)
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
                 .to("log:com.artezio.recovery.kafka?level=DEBUG")
-                .to(RecoveryRoute.INCOME_URL);
+                .to(RecoveryRoutes.INCOME_URL);
     }
 }

@@ -4,8 +4,8 @@ import com.artezio.recovery.model.ClientResponseDTO;
 import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
@@ -20,8 +20,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static com.artezio.recovery.rest.route.RestRoute.REST_CALLBACK_ROUTE_URL;
 
 /**
  * Rest route test.
@@ -53,7 +51,7 @@ public class RestRouteTest {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository repository;
+    private IRecoveryOrderCrud repository;
 
     /**
      * Recovery request income route producer.

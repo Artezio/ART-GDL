@@ -1,6 +1,6 @@
 /*
  */
-package com.artezio.recovery.server.data.exception;
+package com.artezio.recovery.server.data.types;
 
 /**
  * Recovery processing exception.
@@ -55,5 +55,4 @@ public class RecoveryException extends Exception {
     public RecoveryException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
-    
 }

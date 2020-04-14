@@ -2,7 +2,7 @@ package com.artezio.recovery.jms.adaptor;
 
 import com.artezio.recovery.processor.UnwrappingProcessor;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,6 @@ public class JMSRoute extends SpringRouteBuilder {
                 .routeId(JMS_ROUTE_ID)
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
                 .to("log:com.artezio.recovery.jms?level=DEBUG")
-                .to(RecoveryRoute.INCOME_URL);
+                .to(RecoveryRoutes.INCOME_URL);
     }
 }

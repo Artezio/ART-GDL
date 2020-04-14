@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.annotation.ManagedBean;
 import javax.annotation.PostConstruct;
 
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
+import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;

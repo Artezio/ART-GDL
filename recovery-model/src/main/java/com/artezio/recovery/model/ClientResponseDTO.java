@@ -2,7 +2,7 @@
  */
 package com.artezio.recovery.model;
 
-import com.artezio.recovery.server.data.model.ClientResponse;
+import com.artezio.recovery.server.data.messages.ClientResponse;
 import lombok.Getter;
 import lombok.experimental.Delegate;
 

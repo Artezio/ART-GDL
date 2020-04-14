@@ -22,9 +22,8 @@ import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.jms.adaptor.JMSRoute;
-import com.artezio.recovery.server.data.types.DeliveryMethodType;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -60,7 +59,7 @@ public class BatchProcessing {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = RecoveryRoute.INCOME_URL)
+    @Produce(uri = RecoveryRoutes.INCOME_URL)
     private ProducerTemplate directProducer;
 
     /**
@@ -104,10 +103,10 @@ public class BatchProcessing {
      */
     public void stopAll() {
         try {
-            camel.stopRoute(RecoveryRoute.INCOME_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoute.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoute.TIMER_ID, 1, TimeUnit.MILLISECONDS);
-            camel.stopRoute(RecoveryRoute.SEDA_ID, 5, TimeUnit.SECONDS);
+            camel.stopRoute(RecoveryRoutes.INCOME_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.CLEANING_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.TIMER_ID, 1, TimeUnit.MILLISECONDS);
+            camel.stopRoute(RecoveryRoutes.SEDA_ID, 5, TimeUnit.SECONDS);
             camel.stop();
             daoRecovery.deleteAll();
             daoPayments.cancelProcessing();

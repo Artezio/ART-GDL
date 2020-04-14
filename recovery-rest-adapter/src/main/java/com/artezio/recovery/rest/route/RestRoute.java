@@ -4,8 +4,8 @@ import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.processor.UnwrappingProcessor;
 import com.artezio.recovery.rest.bean.RestCallbackBean;
 import com.artezio.recovery.server.config.TransactionSupportConfig;
-import com.artezio.recovery.server.data.model.ClientResponse;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.data.messages.ClientResponse;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -95,7 +95,7 @@ public class RestRoute extends SpringRouteBuilder {
                 .process(unwrapping).id(UnwrappingProcessor.class.getSimpleName())
                 .bean(callbackBean, "extractCallbackUri").id(RestCallbackBean.class.getSimpleName())
                 .to("log:com.artezio.recovery.rest?level=DEBUG")
-                .to(RecoveryRoute.INCOME_URL);
+                .to(RecoveryRoutes.INCOME_URL);
 
         from(REST_CALLBACK_ROUTE_URL)
                 .bean(callbackBean, "insertCallbackUri").id(RestCallbackBean.class.getSimpleName())

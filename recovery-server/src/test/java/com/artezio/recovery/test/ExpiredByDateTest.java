@@ -3,13 +3,13 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.data.model.ClientResponse;
-import com.artezio.recovery.server.data.model.RecoveryOrder;
-import com.artezio.recovery.server.data.model.RecoveryRequest;
-import com.artezio.recovery.server.data.repository.RecoveryOrderRepository;
+import com.artezio.recovery.server.data.messages.ClientResponse;
+import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
-import com.artezio.recovery.server.routes.RecoveryRoute;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
@@ -93,12 +93,12 @@ public class ExpiredByDateTest {
      * Data access object.
      */
     @Autowired
-    private RecoveryOrderRepository dao;
+    private IRecoveryOrderCrud dao;
 
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = RecoveryRoute.INCOME_URL)
+    @Produce(uri = RecoveryRoutes.INCOME_URL)
     private ProducerTemplate producer;
 
     /**
