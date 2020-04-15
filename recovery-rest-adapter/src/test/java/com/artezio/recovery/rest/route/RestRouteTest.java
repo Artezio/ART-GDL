@@ -1,9 +1,10 @@
-package com.artezio.recovery.route;
+package com.artezio.recovery.rest.route;
 
 import com.artezio.recovery.model.ClientResponseDTO;
 import com.artezio.recovery.model.RecoveryOrderDTO;
-import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
+import com.artezio.recovery.rest.model.RestRecoveryRequest;
+import com.artezio.recovery.rest.repository.CallbackAddressRepository;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
@@ -52,6 +53,9 @@ public class RestRouteTest {
      */
     @Autowired
     private IRecoveryOrderCrud repository;
+
+    @Autowired
+    private CallbackAddressRepository callbackAddressRepository;
 
     /**
      * Recovery request income route producer.
@@ -130,12 +134,14 @@ public class RestRouteTest {
         });
         callback.expectedMessageCount(1);
 
-        RecoveryRequestDTO req = new RecoveryRequestDTO();
-        req.setCallbackUri("rest:post:callback?host=localhost:8080");
-        req.setMessage("Hello from Rest Producer!");
+        RestRecoveryRequest request = new RestRecoveryRequest();
+        request.setCallbackUri("rest:post:callback?host=localhost:8080");
+        request.setMessage("Hello from Rest Producer!");
+        request.setExternalId("123");
         repository.deleteAll();
+        callbackAddressRepository.deleteAll();
 
-        producer.sendBody(req);
+        producer.sendBody(request);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
