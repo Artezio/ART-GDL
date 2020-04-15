@@ -1,18 +1,23 @@
-package com.artezio.recovery.jms.test;
+package com.artezio.recovery.jms.route;
 
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
-import com.artezio.recovery.model.RecoveryOrderDTO;
-import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.jms.model.JMSClientResponse;
+import com.artezio.recovery.jms.model.JMSRecoveryOrder;
+import com.artezio.recovery.jms.model.JMSRecoveryRequest;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
 import org.apache.camel.test.spring.MockEndpoints;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +62,24 @@ public class JMSDeliveryTest {
     private MockEndpoint callback;
 
     /**
+     * Minimum number of threads in server thread pool.
+     */
+    @Value("${camel.component.jms.priority}")
+    private int priority;
+
+    /**
+     * Maximum number of threads in server thread pool.
+     */
+    @Value("${camel.component.jms.receive-timeout}")
+    private long receiveTimeout;
+
+    /**
+     * Connection timeout property.
+     */
+    @Value("${camel.component.jms.request-timeout}")
+    private long requestTimeout;
+
+    /**
      * Timeout in milliseconds to emulate long term remote execution.
      */
     private static final int PRODUCER_TIMEOUT = 5_000;
@@ -86,11 +109,15 @@ public class JMSDeliveryTest {
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
-                            RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
+                            JMSRecoveryOrder order = exchange.getIn().getBody(JMSRecoveryOrder.class);
                             log.info("Order message: " + order.getMessage());
 
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
+                            JMSClientResponse response = new JMSClientResponse();
+                            response.setDescription("Test Description");
+                            response.setResult(ClientResultEnum.SUCCESS);
+                            exchange.getIn().setBody(response);
                         }).id("TestProcessor")
                         .to(MOCK_RESULT_URI);
             }
@@ -98,14 +125,17 @@ public class JMSDeliveryTest {
 
         callback.expectedMessageCount(1);
 
-        RecoveryRequestDTO req = new RecoveryRequestDTO();
-        req.setCallbackUri("jms:callback_recovery");
-        req.setMessage("Hello from JMS Producer!");
+        JMSRecoveryRequest request = new JMSRecoveryRequest();
+        request.setCallbackUri("jms:callback_recovery");
+        request.setMessage("Hello from JMS Producer!");
         dao.deleteAll();
-        producer.sendBody(req);
+        producer.sendBody(request);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
+        Assert.assertEquals(priority, camel.getComponent("jms", JmsComponent.class).getConfiguration().getPriority());
+        Assert.assertEquals(receiveTimeout, camel.getComponent("jms", JmsComponent.class).getConfiguration().getReceiveTimeout());
+        Assert.assertEquals(requestTimeout, camel.getComponent("jms", JmsComponent.class).getConfiguration().getRequestTimeout());
         camel.stop();
 
     }

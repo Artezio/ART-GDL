@@ -8,6 +8,7 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.jms.model.JMSRecoveryRequest;
 import com.artezio.recovery.model.RecoveryRequestDTO;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.route.RestRoute;
@@ -164,7 +165,7 @@ public class BatchProcessing {
                 directProducer.sendBody(recoveryRequestDTO.getRecoveryRequest());
                 break;
             case JMS:
-                RecoveryRequestDTO recoveryRequestJMS = prepareRequest(payment);
+                JMSRecoveryRequest recoveryRequestJMS = prepareJMSRequest(payment);
                 jmsProducer.sendBody(recoveryRequestJMS);
                 break;
             case REST:
@@ -176,6 +177,23 @@ public class BatchProcessing {
 
     private RestRecoveryRequest prepareRestRequest(PaymentRequest payment) {
         RestRecoveryRequest request = new RestRecoveryRequest();
+        request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+        request.setExternalId(String.valueOf(payment.getId()));
+        request.setLocker((payment.getLocker() == null)
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
+        request.setMessage(payment.getOperationType().name());
+        request.setPause(payment.getPause());
+        request.setProcessingFrom(payment.getProcessingFrom());
+        request.setProcessingLimit(payment.getProcessingLimit());
+        request.setProcessingTo(payment.getProcessingTo());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+        request.setQueueParent(payment.getQueueParent());
+        return request;
+    }
+
+    private JMSRecoveryRequest prepareJMSRequest(PaymentRequest payment) {
+        JMSRecoveryRequest request = new JMSRecoveryRequest();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
