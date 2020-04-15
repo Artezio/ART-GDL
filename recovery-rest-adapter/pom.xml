@@ -105,6 +105,7 @@
                 <version>2.12.4</version>
                 <configuration>
                     <excludes>
+                        <exclude>**/RestRouteTest.java</exclude>
                     </excludes>
                 </configuration>
             </plugin>

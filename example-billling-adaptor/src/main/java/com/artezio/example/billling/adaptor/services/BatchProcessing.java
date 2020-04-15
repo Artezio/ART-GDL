@@ -2,10 +2,17 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import java.util.concurrent.TimeUnit;
-
+import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
+import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
+import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
+import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
+import com.artezio.example.billling.adaptor.data.types.PaymentState;
 import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.route.RestRoute;
+import com.artezio.recovery.server.context.RecoveryRoutes;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
 import org.apache.camel.Produce;
@@ -17,15 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
-import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
-import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
-import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
-import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
-import com.artezio.recovery.server.context.RecoveryRoutes;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Batch operations with payment processing.
@@ -82,7 +81,7 @@ public class BatchProcessing {
 
     /**
      * Count all processing recovery orders.
-     * 
+     *
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -91,13 +90,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     * 
+     *
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-    
+
     /**
      * Stop all current processes.
      */
@@ -134,7 +133,7 @@ public class BatchProcessing {
         while (page.hasContent()) {
             for (PaymentRequest payment : page) {
                 try {
-                    startRequest(payment, deliveryMethodType);
+                    sendRequest(payment, deliveryMethodType);
                 } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
@@ -150,15 +149,49 @@ public class BatchProcessing {
     }
 
     /**
-     * Start payment request process.
+     * Sends recovery request.
      *
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) {
+    public void sendRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) {
         if (payment == null) {
             return;
         }
+        switch (deliveryMethodType) {
+            case DIRECT:
+                RecoveryRequestDTO recoveryRequestDTO = prepareRequest(payment);
+                directProducer.sendBody(recoveryRequestDTO.getRecoveryRequest());
+                break;
+            case JMS:
+                RecoveryRequestDTO recoveryRequestJMS = prepareRequest(payment);
+                jmsProducer.sendBody(recoveryRequestJMS);
+                break;
+            case REST:
+                RestRecoveryRequest recoveryRequest = prepareRestRequest(payment);
+                restProducer.sendBody(recoveryRequest);
+                break;
+        }
+    }
+
+    private RestRecoveryRequest prepareRestRequest(PaymentRequest payment) {
+        RestRecoveryRequest request = new RestRecoveryRequest();
+        request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+        request.setExternalId(String.valueOf(payment.getId()));
+        request.setLocker((payment.getLocker() == null)
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
+        request.setMessage(payment.getOperationType().name());
+        request.setPause(payment.getPause());
+        request.setProcessingFrom(payment.getProcessingFrom());
+        request.setProcessingLimit(payment.getProcessingLimit());
+        request.setProcessingTo(payment.getProcessingTo());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+        request.setQueueParent(payment.getQueueParent());
+        return request;
+    }
+
+    private RecoveryRequestDTO prepareRequest(PaymentRequest payment){
         RecoveryRequestDTO request = new RecoveryRequestDTO();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
@@ -172,20 +205,6 @@ public class BatchProcessing {
         request.setProcessingTo(payment.getProcessingTo());
         request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
         request.setQueueParent(payment.getQueueParent());
-        sendRequest(request, deliveryMethodType);
-    }
-
-    private void sendRequest(RecoveryRequestDTO request, DeliveryMethodType deliveryMethodType) {
-        switch (deliveryMethodType) {
-            case DIRECT:
-                directProducer.sendBody(request.getRecoveryRequest());
-                break;
-            case JMS:
-                jmsProducer.sendBody(request);
-                break;
-            case REST:
-                restProducer.sendBody(request);
-                break;
-        }
+        return request;
     }
 }
