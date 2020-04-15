@@ -1,18 +1,23 @@
-package com.artezio.recovery.jms.test;
+package com.artezio.recovery.jms.route;
 
 import com.artezio.recovery.jms.application.RecoveryJMSAdaptorApplication;
-import com.artezio.recovery.model.RecoveryOrderDTO;
-import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.jms.model.JMSClientResponse;
+import com.artezio.recovery.jms.model.JMSRecoveryOrder;
+import com.artezio.recovery.jms.model.JMSRecoveryRequest;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.jms.JmsComponent;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
 import org.apache.camel.test.spring.MockEndpoints;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +52,7 @@ public class JMSDeliveryTest {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = "jms:p2p_recovery")
+    @Produce
     private ProducerTemplate producer;
 
     /**
@@ -55,6 +60,35 @@ public class JMSDeliveryTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
+
+    /**
+     * Priority property.
+     */
+    @Value("${camel.component.jms.priority}")
+    private int priority;
+
+    /**
+     * Receive timeout property.
+     */
+    @Value("${camel.component.jms.receive-timeout}")
+    private long receiveTimeout;
+
+    /**
+     * Request timeout property.
+     */
+    @Value("${camel.component.jms.request-timeout}")
+    private long requestTimeout;
+
+    /**
+     * JMS input queue URL.
+     */
+    @Value("${jms.input.queue:jms:p2p_recovery}")
+    private String inputQueueURL;
+    /**
+     * JMS output queue URL.
+     */
+    @Value("${jms.output.queue:jms:callback_recovery}")
+    private String outputQueueURL;
 
     /**
      * Timeout in milliseconds to emulate long term remote execution.
@@ -77,7 +111,7 @@ public class JMSDeliveryTest {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("jms:callback_recovery").routeId("TestJmsCallbackRoute")
+                from(outputQueueURL).routeId("TestJmsCallbackRoute")
                         .to(CALLBACK_URI);
                 from(CALLBACK_URI)
                         .routeId("TestCallback")
@@ -86,11 +120,15 @@ public class JMSDeliveryTest {
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
-                            RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
+                            JMSRecoveryOrder order = exchange.getIn().getBody(JMSRecoveryOrder.class);
                             log.info("Order message: " + order.getMessage());
 
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
+                            JMSClientResponse response = new JMSClientResponse();
+                            response.setDescription("Test Description");
+                            response.setResult(ClientResultEnum.SUCCESS);
+                            exchange.getIn().setBody(response);
                         }).id("TestProcessor")
                         .to(MOCK_RESULT_URI);
             }
@@ -98,14 +136,16 @@ public class JMSDeliveryTest {
 
         callback.expectedMessageCount(1);
 
-        RecoveryRequestDTO req = new RecoveryRequestDTO();
-        req.setCallbackUri("jms:callback_recovery");
-        req.setMessage("Hello from JMS Producer!");
+        JMSRecoveryRequest request = new JMSRecoveryRequest();
+        request.setMessage("Hello from JMS Producer!");
         dao.deleteAll();
-        producer.sendBody(req);
+        producer.sendBody(inputQueueURL, request);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
+        Assert.assertEquals(priority, camel.getComponent("jms", JmsComponent.class).getConfiguration().getPriority());
+        Assert.assertEquals(receiveTimeout, camel.getComponent("jms", JmsComponent.class).getConfiguration().getReceiveTimeout());
+        Assert.assertEquals(requestTimeout, camel.getComponent("jms", JmsComponent.class).getConfiguration().getRequestTimeout());
         camel.stop();
 
     }
