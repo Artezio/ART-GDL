@@ -33,7 +33,7 @@ It can be launched with the following command:
 
    Add the following in your application.properties file:
 
-   * kafka.topic={your topic} (default:test)
+   * kafka.topic={your topic} (default:recovery)
    * kafka.brokers={your list of brokers} (default: localhost:9092)
 
 Please follow the README instructions from recovery-server to learn how to send messages via Camel routes.

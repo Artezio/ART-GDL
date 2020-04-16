@@ -2,10 +2,11 @@ package com.artezio.recovery.kafka.route;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
 import com.artezio.recovery.kafka.application.RecoveryKafkaAdaptorApplication;
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
-import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.kafka.model.KafkaClientResponse;
+import com.artezio.recovery.kafka.model.KafkaRecoveryOrder;
+import com.artezio.recovery.kafka.model.KafkaRecoveryRequest;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
@@ -17,6 +18,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
@@ -56,8 +58,32 @@ public class KafkaRouteTest {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = "kafka:test?brokers=localhost:9092")
+    @Produce
     private ProducerTemplate producer;
+
+    /**
+     * Kafka input queue property.
+     */
+    @Value("${kafka.input.queue:kafka:recovery}")
+    private String kafkaInputQueue;
+
+    /**
+     * Kafka input brokers property.
+     */
+    @Value("${kafka.input.brokers:localhost:9092}")
+    private String kafkaInputBrokers;
+
+    /**
+     * Kafka output queue property.
+     */
+    @Value("${kafka.output.queue:kafka:callback_recovery}")
+    private String kafkaOutputQueue;
+
+    /**
+     * Kafka output brokers property.
+     */
+    @Value("${kafka.output.brokers:localhost:9092}")
+    private String kafkaOutputBrokers;
 
     /**
      * Test callback mock endpoint.
@@ -85,8 +111,8 @@ public class KafkaRouteTest {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("kafka:callback_recovery?brokers=localhost:9092").routeId("TestKafkaCallbackRoute")
-                        .unmarshal().json(JsonLibrary.Jackson, RecoveryOrder.class)
+                from(kafkaOutputQueue + "?brokers=" + kafkaOutputBrokers).routeId("TestKafkaCallbackRoute")
+                        .unmarshal().json(JsonLibrary.Jackson, KafkaRecoveryOrder.class)
                         .to(CALLBACK_URI);
                 from(CALLBACK_URI)
                         .routeId("TestCallback")
@@ -95,11 +121,15 @@ public class KafkaRouteTest {
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
-                            RecoveryOrder order = exchange.getIn().getBody(RecoveryOrder.class);
+                            KafkaRecoveryOrder order = exchange.getIn().getBody(KafkaRecoveryOrder.class);
                             log.info("Order message: " + order.getMessage());
 
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
+                            KafkaClientResponse response = new KafkaClientResponse();
+                            response.setDescription("Test Description");
+                            response.setResult(ClientResultEnum.SUCCESS);
+                            exchange.getIn().setBody(response);
                         }).id("TestProcessor")
                         .to(MOCK_RESULT_URI);
             }
@@ -107,12 +137,11 @@ public class KafkaRouteTest {
 
         callback.expectedMessageCount(1);
 
-        RecoveryRequest req = new RecoveryRequest();
-        req.setCallbackUri("kafka:callback_recovery?brokers=localhost:9092");
-        req.setMessage("Hello from Kafka Producer!");
+        KafkaRecoveryRequest kafkaRequest = new KafkaRecoveryRequest();
+        kafkaRequest.setMessage("Hello from Kafka Producer!");
         repository.deleteAll();
 
-        producer.sendBody(new ObjectMapper().writeValueAsString(req));
+        producer.sendBody(kafkaInputQueue + "?brokers=" + kafkaInputBrokers, kafkaRequest);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
