@@ -1,8 +1,7 @@
 package com.artezio.recovery.rest.route;
 
 import com.artezio.recovery.processor.UnwrappingProcessor;
-import com.artezio.recovery.rest.bean.RestCallbackBean;
-import com.artezio.recovery.rest.config.TransactionSupportConfig;
+import com.artezio.recovery.rest.config.RestTransactionSupportConfig;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.processor.RestCallbackProcessor;
 import com.artezio.recovery.rest.processor.RestRequestProcessor;
@@ -68,22 +67,10 @@ public class RestRoute extends SpringRouteBuilder {
     private String serverPort;
 
     /**
-     * Processor for unwrapping from DTO.
-     */
-    @Autowired
-    private UnwrappingProcessor unwrapping;
-
-    /**
      * Processor for extract recoveryRequest.
      */
     @Autowired
     private RestRequestProcessor requestProcessor;
-
-    /**
-     * Recovery REST callback bean.
-     */
-    @Autowired
-    private RestCallbackBean callbackBean;
 
     /**
      * Recovery REST callback bean.
@@ -105,12 +92,12 @@ public class RestRoute extends SpringRouteBuilder {
                 .to(REST_ROUTE_URL);
 
         from(REST_ROUTE_URL).routeId(REST_ROUTE_ID)
-                .transacted(TransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
+                .transacted(RestTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .process(requestProcessor).id(RestRequestProcessor.class.getSimpleName())
                 .to("log:com.artezio.recovery.rest?level=DEBUG")
                 .to(RecoveryRoutes.INCOME_URL);
 
-        from(REST_CALLBACK_ROUTE_URL)
+        from(REST_CALLBACK_ROUTE_URL).routeId(REST_CALLBACK_ROUTE_ID)
                 .process(callbackProcessor).id(RestCallbackProcessor.class.getSimpleName())
                 .choice()
                 .when(header("callbackUri").isEqualTo(null)).endChoice()

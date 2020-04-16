@@ -6,6 +6,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Data access operations for callback addresses.
+ *
+ * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
+ */
 @Repository
 public interface CallbackAddressRepository extends CrudRepository<CallbackAddress, Long> {
     /**

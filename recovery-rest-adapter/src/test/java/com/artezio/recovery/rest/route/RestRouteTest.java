@@ -1,11 +1,10 @@
 package com.artezio.recovery.rest.route;
 
-import com.artezio.recovery.model.ClientResponseDTO;
-import com.artezio.recovery.model.RecoveryOrderDTO;
 import com.artezio.recovery.rest.application.RecoveryRestAdaptorApplication;
+import com.artezio.recovery.rest.model.RestClientResponse;
+import com.artezio.recovery.rest.model.RestRecoveryOrder;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.repository.CallbackAddressRepository;
-import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
@@ -110,7 +109,7 @@ public class RestRouteTest {
                 rest()
                         .post("/callback").id("TestCallbackRoute")
                         .consumes("application/json")
-                        .type(RecoveryOrder.class)
+                        .type(RestRecoveryOrder.class)
                         .to(CALLBACK_URI);
                 from(CALLBACK_URI)
                         .routeId("TestCallback")
@@ -119,15 +118,15 @@ public class RestRouteTest {
                             log.info(exchange.getExchangeId()
                                     + ": "
                                     + Thread.currentThread().getName());
-                            RecoveryOrderDTO order = exchange.getIn().getBody(RecoveryOrderDTO.class);
+                            RestRecoveryOrder order = exchange.getIn().getBody(RestRecoveryOrder.class);
                             log.info("Order message: " + order.getMessage());
 
                             // Long term process emulation.
                             Thread.sleep(PRODUCER_TIMEOUT);
-                            ClientResponseDTO responseDTO = new ClientResponseDTO();
-                            responseDTO.setDescription("Test Description");
-                            responseDTO.setResult(ClientResultEnum.SUCCESS);
-                            exchange.getIn().setBody(responseDTO.getResponse());
+                            RestClientResponse response = new RestClientResponse();
+                            response.setDescription("Test Description");
+                            response.setResult(ClientResultEnum.SUCCESS);
+                            exchange.getIn().setBody(response);
                         }).id("TestProcessor")
                         .to(MOCK_RESULT_URI);
             }

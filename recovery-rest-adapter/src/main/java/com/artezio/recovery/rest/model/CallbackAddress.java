@@ -1,11 +1,15 @@
 package com.artezio.recovery.rest.model;
 
-import lombok.Builder;
 import lombok.Data;
 
 import javax.persistence.*;
 import javax.xml.bind.annotation.XmlRootElement;
 
+/**
+ * Callback address data structure for DB storing.
+ *
+ * @author Ilya Shevelev <Ilya.Shevelev@artezio.com>
+ */
 @Entity
 @Data
 @SuppressWarnings("PersistenceUnitPresent")
