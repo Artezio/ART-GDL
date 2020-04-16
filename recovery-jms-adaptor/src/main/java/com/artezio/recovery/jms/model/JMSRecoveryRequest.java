@@ -10,7 +10,6 @@ import java.util.Date;
  * Recovery request data structure for JMS adapter.
  * <pre>
  * Fields:
- *  callbackUri (string) Callback route URI.
  *  externalId (string) External message ID.
  *  locker (string) External code to lock new data storing if it exists.
  *  message (string) Short specific recovery data.
@@ -28,7 +27,6 @@ import java.util.Date;
 @ToString
 public class JMSRecoveryRequest implements Serializable {
 
-    private String callbackUri;
     private String externalId;
     private String locker;
     private String message;

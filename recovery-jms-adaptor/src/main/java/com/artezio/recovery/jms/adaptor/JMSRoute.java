@@ -26,7 +26,7 @@ public class JMSRoute extends SpringRouteBuilder {
 
 
     /**
-     * JMS Point to Point Route ID.
+     * JMS callback Route ID.
      */
     public static final String JMS_CALLBACK_ROUTE_ID = "jmsCallbackRoute";
 
@@ -38,16 +38,16 @@ public class JMSRoute extends SpringRouteBuilder {
     /**
      * JMS input queue URL.
      */
-    @Value("${input.queue.name:jms:p2p_recovery}")
+    @Value("${jms.input.queue:jms:p2p_recovery}")
     private String inputQueueURL;
     /**
-     * JMS input queue URL.
+     * JMS output queue URL.
      */
-    @Value("${output.queue.name:jms:callback_recovery}")
+    @Value("${jms.output.queue:jms:callback_recovery}")
     private String outputQueueURL;
 
     /**
-     * Processor for unwrapping from DTO.
+     * Processor for extract recoveryRequest.
      */
     @Autowired
     private JMSRecoveryProcessor requestProcessor;

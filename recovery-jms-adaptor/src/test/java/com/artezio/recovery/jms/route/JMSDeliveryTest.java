@@ -52,7 +52,7 @@ public class JMSDeliveryTest {
     /**
      * Recovery request income route producer.
      */
-    @Produce(uri = "jms:p2p_recovery")
+    @Produce
     private ProducerTemplate producer;
 
     /**
@@ -62,22 +62,33 @@ public class JMSDeliveryTest {
     private MockEndpoint callback;
 
     /**
-     * Minimum number of threads in server thread pool.
+     * Priority property.
      */
     @Value("${camel.component.jms.priority}")
     private int priority;
 
     /**
-     * Maximum number of threads in server thread pool.
+     * Receive timeout property.
      */
     @Value("${camel.component.jms.receive-timeout}")
     private long receiveTimeout;
 
     /**
-     * Connection timeout property.
+     * Request timeout property.
      */
     @Value("${camel.component.jms.request-timeout}")
     private long requestTimeout;
+
+    /**
+     * JMS input queue URL.
+     */
+    @Value("${jms.input.queue:jms:p2p_recovery}")
+    private String inputQueueURL;
+    /**
+     * JMS output queue URL.
+     */
+    @Value("${jms.output.queue:jms:callback_recovery}")
+    private String outputQueueURL;
 
     /**
      * Timeout in milliseconds to emulate long term remote execution.
@@ -100,7 +111,7 @@ public class JMSDeliveryTest {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {
-                from("jms:callback_recovery").routeId("TestJmsCallbackRoute")
+                from(outputQueueURL).routeId("TestJmsCallbackRoute")
                         .to(CALLBACK_URI);
                 from(CALLBACK_URI)
                         .routeId("TestCallback")
@@ -126,10 +137,9 @@ public class JMSDeliveryTest {
         callback.expectedMessageCount(1);
 
         JMSRecoveryRequest request = new JMSRecoveryRequest();
-        request.setCallbackUri("jms:callback_recovery");
         request.setMessage("Hello from JMS Producer!");
         dao.deleteAll();
-        producer.sendBody(request);
+        producer.sendBody(inputQueueURL, request);
 
         Thread.sleep(ENDPOINT_TIMEOUT);
         callback.assertIsSatisfied();
