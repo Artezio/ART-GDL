@@ -21,11 +21,6 @@ It can be launched with the following command:
             	    <artifactId>recovery-rest-adaptor</artifactId>
                     <version>1.0.0</version>
 	        </dependency>
-        	<dependency>
-            	    <groupId>com.artezio</groupId>
-            	    <artifactId>recovery-model</artifactId>
-            	    <version>1.0.0</version>
-        	</dependency>
         </dependencies> 
 ```
 

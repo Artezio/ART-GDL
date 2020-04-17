@@ -21,11 +21,6 @@ Please note that only the jar that ends with exec.jar can be launched with java 
             	    <artifactId>recovery-jms-adaptor</artifactId>
                     <version>1.0.0</version>
 	        </dependency>
-        	<dependency>
-            	    <groupId>com.artezio</groupId>
-            	    <artifactId>recovery-model</artifactId>
-            	    <version>1.0.0</version>
-        	</dependency>
 
 	Add the following in your application.properties file:
 	

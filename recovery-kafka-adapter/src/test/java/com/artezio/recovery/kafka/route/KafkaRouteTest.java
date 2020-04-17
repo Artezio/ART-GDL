@@ -107,7 +107,7 @@ public class KafkaRouteTest {
     private static final int ENDPOINT_TIMEOUT = 30_000;
 
     @Test(timeout = TEST_TIMEOUT)
-    public void restRouteTest() throws Exception {
+    public void kafkaRouteTest() throws Exception {
         camel.addRoutes(new RouteBuilder() {
             @Override
             public void configure() throws Exception {

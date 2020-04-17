@@ -6,4 +6,3 @@
 *.iml
 /recovery-jms-adaptor/target/
 /recovery-rest-adapter/target/
-/recovery-model/target/

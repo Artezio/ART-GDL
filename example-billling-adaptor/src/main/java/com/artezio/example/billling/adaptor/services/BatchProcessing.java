@@ -8,10 +8,11 @@ import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.model.RecoveryRequestDTO;
+import com.artezio.recovery.jms.model.JMSRecoveryRequest;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.route.RestRoute;
 import com.artezio.recovery.server.context.RecoveryRoutes;
+import com.artezio.recovery.server.data.messages.RecoveryRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -72,12 +73,6 @@ public class BatchProcessing {
      */
     @Produce(uri = RestRoute.POST_ENDPOINT_URL + "?host=localhost:8080")
     private ProducerTemplate restProducer;
-
-    /**
-     * Recovery request rest route producer.
-     */
-    @Produce(uri = "kafka:test?brokers=localhost:9092&groupId=testing")
-    private ProducerTemplate kafkaProducer;
 
     /**
      * Count all processing recovery orders.
@@ -160,16 +155,16 @@ public class BatchProcessing {
         }
         switch (deliveryMethodType) {
             case DIRECT:
-                RecoveryRequestDTO recoveryRequestDTO = prepareRequest(payment);
-                directProducer.sendBody(recoveryRequestDTO.getRecoveryRequest());
+                RecoveryRequest recoveryRequest = prepareRequest(payment);
+                directProducer.sendBody(recoveryRequest);
                 break;
             case JMS:
-                RecoveryRequestDTO recoveryRequestJMS = prepareRequest(payment);
+                JMSRecoveryRequest recoveryRequestJMS = prepareJMSRequest(payment);
                 jmsProducer.sendBody(recoveryRequestJMS);
                 break;
             case REST:
-                RestRecoveryRequest recoveryRequest = prepareRestRequest(payment);
-                restProducer.sendBody(recoveryRequest);
+                RestRecoveryRequest recoveryRequestRest = prepareRestRequest(payment);
+                restProducer.sendBody(recoveryRequestRest);
                 break;
         }
     }
@@ -191,9 +186,25 @@ public class BatchProcessing {
         return request;
     }
 
-    private RecoveryRequestDTO prepareRequest(PaymentRequest payment){
-        RecoveryRequestDTO request = new RecoveryRequestDTO();
+    private RecoveryRequest prepareRequest(PaymentRequest payment){
+        RecoveryRequest request = new RecoveryRequest();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+        request.setExternalId(String.valueOf(payment.getId()));
+        request.setLocker((payment.getLocker() == null)
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
+        request.setMessage(payment.getOperationType().name());
+        request.setPause(payment.getPause());
+        request.setProcessingFrom(payment.getProcessingFrom());
+        request.setProcessingLimit(payment.getProcessingLimit());
+        request.setProcessingTo(payment.getProcessingTo());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+        request.setQueueParent(payment.getQueueParent());
+        return request;
+    }
+
+    private JMSRecoveryRequest prepareJMSRequest(PaymentRequest payment){
+        JMSRecoveryRequest request = new JMSRecoveryRequest();
         request.setExternalId(String.valueOf(payment.getId()));
         request.setLocker((payment.getLocker() == null)
                 ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())

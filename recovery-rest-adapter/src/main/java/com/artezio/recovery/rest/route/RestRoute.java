@@ -1,6 +1,5 @@
 package com.artezio.recovery.rest.route;
 
-import com.artezio.recovery.processor.UnwrappingProcessor;
 import com.artezio.recovery.rest.config.RestTransactionSupportConfig;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.processor.RestCallbackProcessor;

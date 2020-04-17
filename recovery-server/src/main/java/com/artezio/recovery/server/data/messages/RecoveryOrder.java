@@ -5,13 +5,21 @@ package com.artezio.recovery.server.data.messages;
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.*;
-
-import javax.persistence.*;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
 /**
  * Recovery request data structure for DB storing.
@@ -45,11 +53,8 @@ import java.util.Date;
  */
 @Entity
 @Data
-@Builder
 @SuppressWarnings("PersistenceUnitPresent")
 @XmlRootElement
-@NoArgsConstructor
-@AllArgsConstructor
 @Table(indexes = {
         @Index(name = "idx_gd_status", unique = false, columnList = "status"),
         @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
@@ -115,9 +120,4 @@ public class RecoveryOrder implements Serializable {
     @Column(length = 128)
     private String versionId;
 
-    @SneakyThrows
-    @Override
-    public String toString() {
-        return new ObjectMapper().writeValueAsString(this);
-    }
 }

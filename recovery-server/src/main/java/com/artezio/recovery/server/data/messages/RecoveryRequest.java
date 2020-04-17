@@ -2,12 +2,10 @@
  */
 package com.artezio.recovery.server.data.messages;
 
-import lombok.Data;
-import lombok.ToString;
-
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.util.Date;
+import javax.xml.bind.annotation.XmlRootElement;
+import lombok.Data;
 
 /**
  * Recovery request data structure for DB storing.
@@ -29,7 +27,6 @@ import java.util.Date;
  */
 @Data
 @XmlRootElement
-@ToString
 public class RecoveryRequest implements Serializable {
 
     private String callbackUri;

@@ -11,10 +11,9 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
 import com.artezio.example.billling.adaptor.data.types.ClientAccountState;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
-import com.artezio.recovery.model.ClientResponseDTO;
-import com.artezio.recovery.model.RecoveryOrderDTO;
-import com.artezio.recovery.model.types.ClientResultEnumDTO;
+import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +21,8 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Optional;
+
+import static com.artezio.recovery.server.data.types.ClientResultEnum.*;
 
 /**
  * Example billing adaptor Apache Camel Route.
@@ -79,8 +80,8 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                     BillingLog msg = new BillingLog();
                     msg.setOperationType(BillingOperationType.PAYMENT_REFUSED);
                     msg.setDescription(txt);
-                    ClientResponseDTO response = new ClientResponseDTO();
-                    response.setResult(ClientResultEnumDTO.SYSTEM_FATAL_ERROR.getResult());
+                    ClientResponse response = new ClientResponse();
+                    response.setResult(SYSTEM_FATAL_ERROR);
                     response.setDescription(txt);
                     PaymentRequest payment = null;
                     BillingAccount account = null;
@@ -92,22 +93,22 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                     + ((body == null) ? "NULL" : body.getClass().getSimpleName());
                             break main;
                         }
-                        RecoveryOrderDTO order = new RecoveryOrderDTO((RecoveryOrder) body);
+                        RecoveryOrder order = (RecoveryOrder) body;
                         String extId = order.getExternalId();
                         if (extId == null) {
-                            txt = "Extenal ID is NULL.";
+                            txt = "External ID is NULL.";
                             break main;
                         }
                         msg.setExternalId(extId);
                         if (!extId.matches("\\d+")) {
-                            txt = "Wrong extenal ID.";
+                            txt = "Wrong external ID.";
                             break main;
                         }
                         Long paymentId = Long.parseLong(extId);
                         Optional<PaymentRequest> paymentRecord = daoPayments.findById(paymentId);
                         if (!paymentRecord.isPresent()) {
                             txt = "Payment record is not found.";
-                            response.setResult(ClientResultEnumDTO.BUSINESS_FATAL_ERROR.getResult());
+                            response.setResult(BUSINESS_FATAL_ERROR);
                             break main;
                         }
                         payment = paymentRecord.get();
@@ -115,7 +116,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                         account = payment.getClient().getAccount();
                         if (account == null) {
                             txt = "Billing account is not found.";
-                            response.setResult(ClientResultEnumDTO.BUSINESS_FATAL_ERROR.getResult());
+                            response.setResult(BUSINESS_FATAL_ERROR);
                             payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                             break main;
                         }
@@ -124,12 +125,12 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                             case EXPIRED_BY_DATE:
                                 txt = "Expired by date limitation.";
                                 payment.setPaymentState(PaymentState.EXPIRED);
-                                response.setResult(ClientResultEnumDTO.SUCCESS.getResult());
+                                response.setResult(ClientResultEnum.SUCCESS);
                                 break main;
                             case EXPIRED_BY_NUMBER:
                                 txt = "Expired by number of tries.";
                                 payment.setPaymentState(PaymentState.EXPIRED);
-                                response.setResult(ClientResultEnumDTO.SUCCESS.getResult());
+                                response.setResult(ClientResultEnum.SUCCESS);
                                 break main;
                         }
                         int count = order.getProcessingCount();
@@ -139,7 +140,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                         if (count < successCount) {
                             txt = "Try "
                                     + count + " of " + successCount;
-                            response.setResult(ClientResultEnumDTO.BUSINESS_ERROR.getResult());
+                            response.setResult(ClientResultEnum.BUSINESS_ERROR);
                             payment.setPaymentState(PaymentState.PROCESSING);
                             break main;
                         }
@@ -175,7 +176,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 break;
                         }
                         payment.setPaymentState(PaymentState.SUCCESS);
-                        response.setResult(ClientResultEnumDTO.SUCCESS.getResult());
+                        response.setResult(ClientResultEnum.SUCCESS);
                     } catch (Throwable t) {
                         txt = t.getClass().getSimpleName()
                                 + ": "
@@ -190,7 +191,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                                 log.error(txt);
                                 break;
                         }
-                        e.getIn().setBody(response.getResponse());
+                        e.getIn().setBody(response);
                         if (account != null) {
                             daoAccounts.save(account);
                         }
