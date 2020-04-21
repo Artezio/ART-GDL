@@ -1,11 +1,13 @@
 package com.artezio.recovery.rest.processor;
 
 import com.artezio.recovery.rest.model.CallbackAddress;
+import com.artezio.recovery.rest.model.RestRecoveryOrder;
 import com.artezio.recovery.rest.repository.CallbackAddressRepository;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
@@ -32,8 +34,11 @@ public class RestCallbackProcessor implements Processor {
         RecoveryOrder recoveryOrder = exchange.getIn().getBody(RecoveryOrder.class);
         CallbackAddress callbackAddress = repository.findByExternalId(recoveryOrder.getExternalId());
         if (callbackAddress != null && callbackAddress.getCallbackUri() != null && !callbackAddress.getCallbackUri().isEmpty()) {
-            log.info("CallbackAddress for request with externalId "+ recoveryOrder.getExternalId() +" received.");
+            log.info("CallbackAddress for request with externalId " + recoveryOrder.getExternalId() + " received.");
             exchange.getIn().setHeader("callbackUri", callbackAddress.getCallbackUri());
         }
+        RestRecoveryOrder restOrder = new RestRecoveryOrder();
+        BeanUtils.copyProperties(restOrder, recoveryOrder);
+        exchange.getIn().setBody(restOrder);
     }
 }
