@@ -4,6 +4,7 @@ import com.artezio.recovery.rest.model.CallbackAddress;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.repository.CallbackAddressRepository;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.storage.processor.RecoveryMessageProcessor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -30,7 +31,13 @@ import static com.artezio.recovery.rest.route.RestRoute.REST_CALLBACK_ROUTE_URL;
 public class RestRequestProcessor implements Processor {
 
     /**
-     * Repository fro callback address.
+     * Processor for storing recovery messages.
+     */
+    @Autowired
+    private RecoveryMessageProcessor messageProcessor;
+
+    /**
+     * Repository for callback address.
      */
     @Autowired
     private CallbackAddressRepository repository;
@@ -40,7 +47,7 @@ public class RestRequestProcessor implements Processor {
         request.setCallbackUri(REST_CALLBACK_ROUTE_URL);
         request.setExternalId(restRequest.getExternalId());
         request.setLocker(restRequest.getLocker());
-        request.setMessage(restRequest.getMessage());
+        request.setMessage(messageProcessor.processSaving(restRequest.getMessage()));
         request.setPause(restRequest.getPause());
         request.setProcessingFrom(restRequest.getProcessingFrom());
         request.setProcessingLimit(restRequest.getProcessingLimit());
