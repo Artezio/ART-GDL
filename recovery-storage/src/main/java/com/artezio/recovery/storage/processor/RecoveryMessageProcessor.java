@@ -4,6 +4,7 @@ import com.artezio.recovery.storage.model.RecoveryMessage;
 import com.artezio.recovery.storage.repository.RecoveryMessageRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,12 @@ import java.util.Optional;
 public class RecoveryMessageProcessor {
 
     /**
+     * Recovery message length limit property.
+     */
+    @Value("${com.artezio.recovery.storage.limit:2000}")
+    private int recoveryMessageLimit;
+
+    /**
      * Repository for recovery messages.
      */
     @Autowired
@@ -35,7 +42,7 @@ public class RecoveryMessageProcessor {
      * @param message Recovery request's message.
      */
     public String processSaving(String message) {
-        if (message.length() > 2000) {
+        if (message != null && message.length() > recoveryMessageLimit) {
             return saveMessage(message);
         }
         return message;

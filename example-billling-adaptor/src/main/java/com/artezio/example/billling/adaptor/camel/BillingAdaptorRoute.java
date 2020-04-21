@@ -11,18 +11,21 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
 import com.artezio.example.billling.adaptor.data.types.ClientAccountState;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.rest.model.RestRecoveryOrder;
 import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Optional;
 
-import static com.artezio.recovery.server.data.types.ClientResultEnum.*;
+import static com.artezio.recovery.server.data.types.ClientResultEnum.BUSINESS_FATAL_ERROR;
+import static com.artezio.recovery.server.data.types.ClientResultEnum.SYSTEM_FATAL_ERROR;
 
 /**
  * Example billing adaptor Apache Camel Route.
@@ -88,6 +91,11 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                     main:
                     try {
                         Object body = e.getIn().getBody();
+                        if (body instanceof RestRecoveryOrder) {
+                            RecoveryOrder recoveryOrder = new RecoveryOrder();
+                            BeanUtils.copyProperties(recoveryOrder, body);
+                            body = recoveryOrder;
+                        }
                         if (!(body instanceof RecoveryOrder)) {
                             txt = "Recovery message: "
                                     + ((body == null) ? "NULL" : body.getClass().getSimpleName());
