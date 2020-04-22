@@ -21,5 +21,6 @@
         <module>recovery-rest-adapter</module>
         <module>recovery-jms-adaptor</module>
         <module>recovery-kafka-adapter</module>
+        <module>recovery-kafka-model</module>
     </modules>
 </project>
