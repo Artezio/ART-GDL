@@ -68,6 +68,7 @@ public class JMSRoute extends SpringRouteBuilder {
                 .to(RecoveryRoutes.INCOME_URL);
 
         from(JMS_CALLBACK_ROUTE_URL).routeId(JMS_CALLBACK_ROUTE_ID)
+                .transacted(JMSTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .convertBodyTo(JMSRecoveryOrder.class)
                 .toD(outputQueueURL)
                 .process(responseProcessor).id(JMSResponseProcessor.class.getSimpleName());

@@ -9,9 +9,9 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>recovery-rest-model</artifactId>
+    <artifactId>recovery-kafka-model</artifactId>
     <packaging>jar</packaging>
-    <name>Recovery rest model</name>
+    <name>Recovery kafka model</name>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -34,14 +34,6 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
     </dependencies>
 
