@@ -4,10 +4,9 @@ import com.artezio.recovery.rest.config.RestTransactionSupportConfig;
 import com.artezio.recovery.rest.model.RestRecoveryRequest;
 import com.artezio.recovery.rest.processor.RestCallbackProcessor;
 import com.artezio.recovery.rest.processor.RestRequestProcessor;
+import com.artezio.recovery.rest.processor.RestResponseProcessor;
 import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.messages.ClientResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.model.rest.RestBindingMode;
 import org.apache.camel.spring.SpringRouteBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,10 +71,16 @@ public class RestRoute extends SpringRouteBuilder {
     private RestRequestProcessor requestProcessor;
 
     /**
-     * Recovery REST callback bean.
+     * Recovery REST callback processor.
      */
     @Autowired
     private RestCallbackProcessor callbackProcessor;
+
+    /**
+     * Recovery REST response processor.
+     */
+    @Autowired
+    private RestResponseProcessor responseProcessor;
 
     @Override
     public void configure() {
@@ -97,14 +102,11 @@ public class RestRoute extends SpringRouteBuilder {
                 .to(RecoveryRoutes.INCOME_URL);
 
         from(REST_CALLBACK_ROUTE_URL).routeId(REST_CALLBACK_ROUTE_ID)
+                .transacted(RestTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .process(callbackProcessor).id(RestCallbackProcessor.class.getSimpleName())
                 .choice()
                 .when(header("callbackUri").isEqualTo(null)).endChoice()
-                .otherwise()
-                    .toD("${header.callbackUri}")
-                .choice()
-                .when(body().isInstanceOf(ClientResponse.class)).endChoice()
-                .otherwise()
-                    .unmarshal().json(JsonLibrary.Jackson, ClientResponse.class);
+                .otherwise().toD("${header.callbackUri}")
+                .process(responseProcessor).id(RestResponseProcessor.class.getSimpleName());
     }
 }
