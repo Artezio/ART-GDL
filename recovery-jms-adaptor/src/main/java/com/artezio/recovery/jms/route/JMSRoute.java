@@ -1,8 +1,9 @@
-package com.artezio.recovery.jms.adaptor;
+package com.artezio.recovery.jms.route;
 
 import com.artezio.recovery.jms.config.JMSTransactionSupportConfig;
 import com.artezio.recovery.jms.model.JMSRecoveryOrder;
-import com.artezio.recovery.jms.processor.JMSRecoveryProcessor;
+import com.artezio.recovery.jms.processor.JMSRequestProcessor;
+import com.artezio.recovery.jms.processor.JMSResponseProcessor;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -50,18 +51,26 @@ public class JMSRoute extends SpringRouteBuilder {
      * Processor for extract recoveryRequest.
      */
     @Autowired
-    private JMSRecoveryProcessor requestProcessor;
+    private JMSRequestProcessor requestProcessor;
+
+    /**
+     * Processor for handling client response.
+     */
+    @Autowired
+    private JMSResponseProcessor responseProcessor;
 
     @Override
     public void configure() throws Exception {
         from(inputQueueURL).routeId(JMS_ROUTE_ID)
                 .transacted(JMSTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-                .process(requestProcessor).id(JMSRecoveryProcessor.class.getSimpleName())
+                .process(requestProcessor).id(JMSRequestProcessor.class.getSimpleName())
                 .to("log:com.artezio.recovery.jms?level=DEBUG")
                 .to(RecoveryRoutes.INCOME_URL);
 
         from(JMS_CALLBACK_ROUTE_URL).routeId(JMS_CALLBACK_ROUTE_ID)
+                .transacted(JMSTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .convertBodyTo(JMSRecoveryOrder.class)
-                .toD(outputQueueURL);
+                .toD(outputQueueURL)
+                .process(responseProcessor).id(JMSResponseProcessor.class.getSimpleName());
     }
 }

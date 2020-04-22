@@ -36,6 +36,11 @@
             <artifactId>recovery-storage</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>com.artezio</groupId>
+            <artifactId>recovery-kafka-model</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <!-- External -->
         <dependency>
             <groupId>org.apache.camel</groupId>

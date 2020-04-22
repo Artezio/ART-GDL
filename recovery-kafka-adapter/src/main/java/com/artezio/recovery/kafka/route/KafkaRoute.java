@@ -2,7 +2,8 @@ package com.artezio.recovery.kafka.route;
 
 import com.artezio.recovery.kafka.config.KafkaTransactionSupportConfig;
 import com.artezio.recovery.kafka.model.KafkaRecoveryOrder;
-import com.artezio.recovery.kafka.processor.KafkaRecoveryProcessor;
+import com.artezio.recovery.kafka.processor.KafkaRequestProcessor;
+import com.artezio.recovery.kafka.processor.KafkaResponseProcessor;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
@@ -63,18 +64,26 @@ public class KafkaRoute extends SpringRouteBuilder {
      * Processor for extract recoveryRequest.
      */
     @Autowired
-    private KafkaRecoveryProcessor recoveryProcessor;
+    private KafkaRequestProcessor requestProcessor;
+
+    /**
+     * Processor for handling client response.
+     */
+    @Autowired
+    private KafkaResponseProcessor responseProcessor;
 
     @Override
     public void configure() throws Exception {
         from(inputQueueURL + "?brokers=" + kafkaBrokers).id(KAFKA_ROUTE_ID)
                 .transacted(KafkaTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
-                .process(recoveryProcessor).id(KafkaRecoveryProcessor.class.getSimpleName())
+                .process(requestProcessor).id(KafkaRequestProcessor.class.getSimpleName())
                 .to("log:com.artezio.recovery.kafka?level=DEBUG")
                 .to(RecoveryRoutes.INCOME_URL);
 
         from(KAFKA_CALLBACK_ROUTE_URL).id(KAFKA_CALLBACK_ROUTE_ID)
+                .transacted(KafkaTransactionSupportConfig.PROPAGATIONTYPE_PROPAGATION_REQUIRED)
                 .convertBodyTo(KafkaRecoveryOrder.class)
-                .toD(outputQueueURL + "?brokers=" + outputBrokers);
+                .toD(outputQueueURL + "?brokers=" + outputBrokers)
+                .process(responseProcessor).id(KafkaResponseProcessor.class.getSimpleName());
     }
 }

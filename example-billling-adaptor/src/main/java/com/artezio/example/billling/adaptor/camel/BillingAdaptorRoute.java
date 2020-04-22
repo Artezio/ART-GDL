@@ -11,6 +11,7 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
 import com.artezio.example.billling.adaptor.data.types.ClientAccountState;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.jms.model.JMSRecoveryOrder;
 import com.artezio.recovery.rest.model.RestRecoveryOrder;
 import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
@@ -92,6 +93,11 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                     try {
                         Object body = e.getIn().getBody();
                         if (body instanceof RestRecoveryOrder) {
+                            RecoveryOrder recoveryOrder = new RecoveryOrder();
+                            BeanUtils.copyProperties(recoveryOrder, body);
+                            body = recoveryOrder;
+                        }
+                        if (body instanceof JMSRecoveryOrder) {
                             RecoveryOrder recoveryOrder = new RecoveryOrder();
                             BeanUtils.copyProperties(recoveryOrder, body);
                             body = recoveryOrder;

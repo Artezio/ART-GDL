@@ -25,6 +25,7 @@ import java.util.Date;
  */
 @Data
 public class KafkaRecoveryRequest {
+
     private String externalId;
     private String locker;
     private String message;

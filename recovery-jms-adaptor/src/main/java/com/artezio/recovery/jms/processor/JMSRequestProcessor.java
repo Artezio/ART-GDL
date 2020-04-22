@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.function.Function;
 
-import static com.artezio.recovery.jms.adaptor.JMSRoute.JMS_CALLBACK_ROUTE_URL;
+import static com.artezio.recovery.jms.route.JMSRoute.JMS_CALLBACK_ROUTE_URL;
 
 /**
  * Recovery request processor.
@@ -25,7 +25,7 @@ import static com.artezio.recovery.jms.adaptor.JMSRoute.JMS_CALLBACK_ROUTE_URL;
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Slf4j
-public class JMSRecoveryProcessor implements Processor {
+public class JMSRequestProcessor implements Processor {
 
     /**
      * Processor for storing recovery messages.

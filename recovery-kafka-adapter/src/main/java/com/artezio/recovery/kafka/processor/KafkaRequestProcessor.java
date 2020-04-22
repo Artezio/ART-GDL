@@ -24,7 +24,7 @@ import static com.artezio.recovery.kafka.route.KafkaRoute.KAFKA_CALLBACK_ROUTE_U
 @Component
 @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON)
 @Slf4j
-public class KafkaRecoveryProcessor implements Processor {
+public class KafkaRequestProcessor implements Processor {
 
     /**
      * Processor for storing recovery messages.
