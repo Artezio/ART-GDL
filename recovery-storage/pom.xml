@@ -11,7 +11,7 @@
 
     <artifactId>recovery-storage</artifactId>
     <packaging>jar</packaging>
-    <name>Recovery rest adapter</name>
+    <name>Recovery storage</name>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -25,11 +25,6 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-spring-boot-starter</artifactId>
-            <version>${recovery.camel.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
@@ -40,18 +35,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test</artifactId>
-            <version>${recovery.camel.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-test-spring</artifactId>
-            <version>${recovery.camel.version}</version>
-            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -27,8 +27,11 @@ It can be launched with the following command:
    Try to use the latest version of the application
 
    Add the following in your application.properties file:
-
-   * kafka.topic={your topic} (default:recovery)
-   * kafka.brokers={your list of brokers} (default: localhost:9092)
+   
+   * kafka.input.queue=kafka:{your input topic} (default:kafka:recovery)
+   * kafka.input.brokers={your list of brokers} (default: localhost:9092)
+   
+   * kafka.output.queue=kafka:{your output topic} (default:kafka:callback_recovery)
+   * kafka.output.brokers={your list of brokers} (default: localhost:9092)
 
 Please follow the README instructions from recovery-server to learn how to send messages via Camel routes.

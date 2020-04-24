@@ -15,7 +15,7 @@ It can be launched with the following command:
 	Add the following entries in your POM file (or in the equivalent dependencies file if you are not using Maven):
 	
 ```xml
-	<dependencies>   
+	    <dependencies>   
 	        <dependency>
 	            <groupId>com.artezio</groupId>
             	    <artifactId>recovery-rest-adaptor</artifactId>
@@ -31,7 +31,8 @@ It can be launched with the following command:
    * rest.server.host={your server host} (default: localhost)
    * rest.server.port={your server port} (default: 8080)
    
-   For more flexibility in configuring REST connection you can add following properties:
+   For more flexibility in configuring REST connection you can add other properties, read a detailed description 
+   at https://camel.apache.org/camel-spring-boot/latest/jetty-starter.html. For example: 
    
    * camel.component.jetty.continuation-timeout={timeout in ms} (default: 30000)
    * camel.component.jetty.min-threads={minimum number of threads} (default: 5)

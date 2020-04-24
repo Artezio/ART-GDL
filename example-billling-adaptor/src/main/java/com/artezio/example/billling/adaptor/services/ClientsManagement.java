@@ -2,7 +2,6 @@
  */
 package com.artezio.example.billling.adaptor.services;
 
-import com.artezio.example.billling.adaptor.data.access.IBillingAccountCrud;
 import com.artezio.example.billling.adaptor.data.access.IBillingClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.BillingAccount;
 import com.artezio.example.billling.adaptor.data.entities.BillingClient;
