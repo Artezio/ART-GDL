@@ -57,6 +57,6 @@ public enum ProcessingCodeEnum {
     /**
      * Recovery client has returned an fatal business error.
      */
-    FATAL_BUSINESS;
+    FATAL_BUSINESS
     
 }

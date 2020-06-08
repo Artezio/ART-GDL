@@ -90,7 +90,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
     Page<RecoveryOrder> findNewOrders(
-            Pageable pageable, 
+            Pageable pageable,
             @Param("processingDate") Date processingDate);
 
     /**
@@ -107,7 +107,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + " AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderOpened ASC")
     Page<RecoveryOrder> findProcessingOrders(
-            Pageable pageable, 
+            Pageable pageable,
             @Param("processingDate") Date processingDate);
 
     /**
@@ -126,7 +126,7 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + "AND ((o.processingFrom IS NULL) OR (o.processingFrom < :processingDate)) "
             + "ORDER BY o.orderOpened ASC")
     Page<RecoveryOrder> findQueuedOrders(
-            Pageable pageable, 
+            Pageable pageable,
             @Param("processingDate") Date processingDate);
 
     /**
@@ -144,8 +144,8 @@ public interface IRecoveryOrderCrud extends CrudRepository<RecoveryOrder, Long> 
             + " ) AND (o.status = com.artezio.recovery.server.data.types.RecoveryStatusEnum.PROCESSING)"
             + " ORDER BY o.orderCreated ASC")
     Page<RecoveryOrder> findTopOfQueue(Pageable pageable,
-            @Param("queue") String queue,
-            @Param("queueParent") String queueParent,
-            @Param("created") Date created);
+                                       @Param("queue") String queue,
+                                       @Param("queueParent") String queueParent,
+                                       @Param("created") Date created);
 
 }

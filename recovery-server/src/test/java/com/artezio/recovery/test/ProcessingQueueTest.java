@@ -3,18 +3,12 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
-import java.util.Date;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -22,10 +16,15 @@ import org.apache.camel.test.spring.MockEndpoints;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import java.util.Date;
 
 /**
  * Processing queue test.
@@ -36,7 +35,22 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @SpringBootTest(
         classes = RecoveryServerApplication.class,
         properties = {
-            "logging.level.org.hibernate.SQL=INFO"
+                "logging.level.org.hibernate.SQL=INFO"
+        }
+)
+@ComponentScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EntityScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EnableJpaRepositories(
+        basePackages = {
+                "com.artezio.recovery.server"
         }
 )
 @MockEndpoints
@@ -100,7 +114,7 @@ public class ProcessingQueueTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
      * Processing queue test definition.
      *
@@ -129,7 +143,7 @@ public class ProcessingQueueTest {
                         .to(MOCK_RESULT_URI);
             }
         });
-        callback.expectedHeaderValuesReceivedInAnyOrder(QUEUE_CHECK_HEADER, 
+        callback.expectedHeaderValuesReceivedInAnyOrder(QUEUE_CHECK_HEADER,
                 "p1",
                 "p1p2",
                 "p1p2p3",

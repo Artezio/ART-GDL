@@ -17,19 +17,19 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @Configuration
 @ComponentScan(
         basePackages = {
-            "com.artezio.recovery.server",
+            "com.artezio.recovery",
             "com.artezio.example.billling.adaptor"
         }
 )
 @EntityScan(
         basePackages = {
-            "com.artezio.recovery.server",
+            "com.artezio.recovery",
             "com.artezio.example.billling.adaptor"
         }
 )
 @EnableJpaRepositories(
         basePackages = {
-            "com.artezio.recovery.server",
+            "com.artezio.recovery",
             "com.artezio.example.billling.adaptor"
         }
 )

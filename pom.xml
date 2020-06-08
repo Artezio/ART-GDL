@@ -18,5 +18,12 @@
     <modules>
         <module>recovery-server</module>
         <module>example-billling-adaptor</module>
+        <module>recovery-rest-adapter</module>
+        <module>recovery-jms-adaptor</module>
+        <module>recovery-kafka-adapter</module>
+        <module>recovery-rest-model</module>
+        <module>recovery-jms-model</module>
+        <module>recovery-kafka-model</module>
+        <module>recovery-storage</module>
     </modules>
 </project>

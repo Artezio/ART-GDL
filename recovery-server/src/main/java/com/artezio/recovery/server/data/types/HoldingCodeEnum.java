@@ -28,5 +28,5 @@ public enum HoldingCodeEnum {
     /**
      * Processing holds by a parent queue.
      */
-    HOLDING_BY_PARENT_QUEUE;
+    HOLDING_BY_PARENT_QUEUE
 }

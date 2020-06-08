@@ -84,6 +84,14 @@
                     <h:outputLabel value="#{indexPageBean.eta}" styleClass="lRow" />
                     <h:outputLabel value=" " styleClass="lRow" />
                 </h:panelGrid>
+                <h:panelGrid border="0" width="360"
+                             styleClass="tLine" headerClass="fHeader"
+                             columns="2">
+                    <h:outputLabel value="DELIVERY METHOD" styleClass="lHeader" />
+                    <h:selectOneMenu value="#{indexPageBean.selectedChannel}">
+                        <f:selectItems value="#{indexPageBean.messageDeliveryMethodTypes}" />
+                    </h:selectOneMenu>
+                </h:panelGrid>
                 <ui:insert name="headerPaginator">
                     <ui:include src="paginator.xhtml" />
                 </ui:insert>

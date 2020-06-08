@@ -1,5 +1,3 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;

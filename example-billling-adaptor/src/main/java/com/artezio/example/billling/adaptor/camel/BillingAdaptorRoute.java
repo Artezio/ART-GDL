@@ -11,15 +11,22 @@ import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
 import com.artezio.example.billling.adaptor.data.types.BillingOperationType;
 import com.artezio.example.billling.adaptor.data.types.ClientAccountState;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.jms.model.JMSRecoveryOrder;
+import com.artezio.recovery.rest.model.RestRecoveryOrder;
 import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
-import java.math.BigDecimal;
-import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.spring.SpringRouteBuilder;
+import org.apache.commons.beanutils.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.math.BigDecimal;
+import java.util.Optional;
+
+import static com.artezio.recovery.server.data.types.ClientResultEnum.BUSINESS_FATAL_ERROR;
+import static com.artezio.recovery.server.data.types.ClientResultEnum.SYSTEM_FATAL_ERROR;
 
 /**
  * Example billing adaptor Apache Camel Route.
@@ -78,13 +85,23 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                     msg.setOperationType(BillingOperationType.PAYMENT_REFUSED);
                     msg.setDescription(txt);
                     ClientResponse response = new ClientResponse();
-                    response.setResult(ClientResultEnum.SYSTEM_FATAL_ERROR);
+                    response.setResult(SYSTEM_FATAL_ERROR);
                     response.setDescription(txt);
                     PaymentRequest payment = null;
                     BillingAccount account = null;
                     main:
                     try {
                         Object body = e.getIn().getBody();
+                        if (body instanceof RestRecoveryOrder) {
+                            RecoveryOrder recoveryOrder = new RecoveryOrder();
+                            BeanUtils.copyProperties(recoveryOrder, body);
+                            body = recoveryOrder;
+                        }
+                        if (body instanceof JMSRecoveryOrder) {
+                            RecoveryOrder recoveryOrder = new RecoveryOrder();
+                            BeanUtils.copyProperties(recoveryOrder, body);
+                            body = recoveryOrder;
+                        }
                         if (!(body instanceof RecoveryOrder)) {
                             txt = "Recovery message: "
                                     + ((body == null) ? "NULL" : body.getClass().getSimpleName());
@@ -93,19 +110,19 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                         RecoveryOrder order = (RecoveryOrder) body;
                         String extId = order.getExternalId();
                         if (extId == null) {
-                            txt = "Extenal ID is NULL.";
+                            txt = "External ID is NULL.";
                             break main;
                         }
                         msg.setExternalId(extId);
                         if (!extId.matches("\\d+")) {
-                            txt = "Wrong extenal ID.";
+                            txt = "Wrong external ID.";
                             break main;
                         }
                         Long paymentId = Long.parseLong(extId);
                         Optional<PaymentRequest> paymentRecord = daoPayments.findById(paymentId);
                         if (!paymentRecord.isPresent()) {
                             txt = "Payment record is not found.";
-                            response.setResult(ClientResultEnum.BUSINESS_FATAL_ERROR);
+                            response.setResult(BUSINESS_FATAL_ERROR);
                             break main;
                         }
                         payment = paymentRecord.get();
@@ -113,7 +130,7 @@ public class BillingAdaptorRoute extends SpringRouteBuilder {
                         account = payment.getClient().getAccount();
                         if (account == null) {
                             txt = "Billing account is not found.";
-                            response.setResult(ClientResultEnum.BUSINESS_FATAL_ERROR);
+                            response.setResult(BUSINESS_FATAL_ERROR);
                             payment.setPaymentState(PaymentState.SYSTEM_ERROR);
                             break main;
                         }

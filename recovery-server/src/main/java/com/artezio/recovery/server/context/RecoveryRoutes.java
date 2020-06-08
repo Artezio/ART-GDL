@@ -2,8 +2,8 @@
  */
 package com.artezio.recovery.server.context;
 
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.processors.CallbackProcessor;
 import com.artezio.recovery.server.processors.CleaningProcessor;
 import com.artezio.recovery.server.processors.RestoringProcessor;
@@ -80,7 +80,7 @@ public class RecoveryRoutes extends SpringRouteBuilder {
     /**
      *  Property of flag to schedule processing.
      */
-    @Value("${com.artezio.recovery.schedule.enebled:true}")
+    @Value("${com.artezio.recovery.schedule.enabled:true}")
     private boolean scheduleEnabled;
     
     /**
@@ -120,7 +120,7 @@ public class RecoveryRoutes extends SpringRouteBuilder {
      * @throws Exception @see Exception
      */
     @Override
-    public void configure() throws Exception {
+        public void configure() throws Exception {
         // Initializing data access.
         dao.count();
         // Define income route.

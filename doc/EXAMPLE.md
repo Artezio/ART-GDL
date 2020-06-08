@@ -74,6 +74,15 @@ The command buttons of the main view using for performing all test operations.
 
 During an test execution all command buttons except **STOP** button are disabled. Otherwise the **STOP** button is disabled. The **CLEAN** button do not clean clients billing accounts.
 
+### Dropdown
+
+The dropdown of the main view using for choosing the type of channel  for sending information to camel.
+Possible options:
+
+- **DIRECT CHANNEL** : Send request directly.
+- **JMS CHANNEL** : Send request via JMS.
+- **REST CHANNEL** : Send request via REST.
+
 ### Requests list
 
 The requests list of the main view is an data representation of the example payment requests. It contains 10 items per page and a page navigation panel to scroll you data view in case when you have more then 10 requests. Each example payment request have next properties:

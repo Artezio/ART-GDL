@@ -32,7 +32,7 @@ import lombok.Data;
  *  externalId (string) External message ID.
  *  holdingCode (enumeration) Preprocessing hold code.
  *  locker (string) External code to lock new data storing if it exists.
- *  lockerVersion (string) Code to make with locker qnique index.
+ *  lockerVersion (string) Code to make with locker unique index.
  *  message (string) Short specific recovery data.
  *  orderCreated (date) Record creation date.
  *  orderModified (date) Processing status modification date.
@@ -56,11 +56,11 @@ import lombok.Data;
 @SuppressWarnings("PersistenceUnitPresent")
 @XmlRootElement
 @Table(indexes = {
-    @Index(name = "idx_gd_status", unique = false, columnList = "status"),
-    @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
-    @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerVersion"),
-    @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
-    @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
+        @Index(name = "idx_gd_status", unique = false, columnList = "status"),
+        @Index(name = "idx_gd_version", unique = false, columnList = "versionId"),
+        @Index(name = "idx_gd_locker", unique = true, columnList = "locker, lockerVersion"),
+        @Index(name = "idx_gd_queue", unique = false, columnList = "queue"),
+        @Index(name = "idx_gd_parent", unique = false, columnList = "queueParent")
 })
 public class RecoveryOrder implements Serializable {
 
@@ -118,6 +118,6 @@ public class RecoveryOrder implements Serializable {
     @Enumerated(EnumType.STRING)
     private RecoveryStatusEnum status;
     @Column(length = 128)
-    private String versionId;    
+    private String versionId;
 
 }

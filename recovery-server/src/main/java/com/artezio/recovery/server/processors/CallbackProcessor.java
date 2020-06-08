@@ -2,12 +2,12 @@
  */
 package com.artezio.recovery.server.processors;
 
+import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.ClientResponse;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.types.ClientResultEnum;
 import com.artezio.recovery.server.data.types.HoldingCodeEnum;
-import com.artezio.recovery.server.data.types.PauseConfig;
 import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
 import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
 import java.util.Date;

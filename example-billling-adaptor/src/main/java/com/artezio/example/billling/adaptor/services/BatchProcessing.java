@@ -6,10 +6,13 @@ import com.artezio.example.billling.adaptor.camel.BillingAdaptorRoute;
 import com.artezio.example.billling.adaptor.data.access.IPaymentRequestCrud;
 import com.artezio.example.billling.adaptor.data.access.IRecoveryClientCrud;
 import com.artezio.example.billling.adaptor.data.entities.PaymentRequest;
+import com.artezio.example.billling.adaptor.data.types.DeliveryMethodType;
 import com.artezio.example.billling.adaptor.data.types.PaymentState;
+import com.artezio.recovery.jms.model.JMSRecoveryRequest;
+import com.artezio.recovery.rest.model.RestRecoveryRequest;
+import com.artezio.recovery.rest.route.RestRoute;
 import com.artezio.recovery.server.context.RecoveryRoutes;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
-import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.CamelContext;
 import org.apache.camel.CamelExecutionException;
@@ -21,6 +24,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * Batch operations with payment processing.
@@ -55,11 +60,23 @@ public class BatchProcessing {
      * Recovery request income route producer.
      */
     @Produce(uri = RecoveryRoutes.INCOME_URL)
-    private ProducerTemplate producer;
-    
+    private ProducerTemplate directProducer;
+
+    /**
+     * Recovery request jms route producer.
+     */
+    @Produce(uri = "jms:p2p_recovery")
+    private ProducerTemplate jmsProducer;
+
+    /**
+     * Recovery request rest route producer.
+     */
+    @Produce(uri = RestRoute.POST_ENDPOINT_URL + "?host=localhost:8080")
+    private ProducerTemplate restProducer;
+
     /**
      * Count all processing recovery orders.
-     * 
+     *
      * @return Number of all processing recovery orders.
      */
     public long countProcessingOrders() {
@@ -68,13 +85,13 @@ public class BatchProcessing {
 
     /**
      * Count paused processing recovery orders.
-     * 
+     *
      * @return Number of paused processing recovery orders.
      */
     public long countPausedOrders() {
         return daoRecovery.countPausedOrders();
     }
-    
+
     /**
      * Stop all current processes.
      */
@@ -102,7 +119,7 @@ public class BatchProcessing {
      */
     @Transactional(propagation = Propagation.REQUIRED)
     @SuppressWarnings("ThrowableResultIgnored")
-    public void startAll() {
+    public void startAll(DeliveryMethodType deliveryMethodType) {
         if (!camel.getStatus().isStarted()) {
             return;
         }
@@ -111,7 +128,7 @@ public class BatchProcessing {
         while (page.hasContent()) {
             for (PaymentRequest payment : page) {
                 try {
-                    startRequest(payment);
+                    sendRequest(payment, deliveryMethodType);
                 } catch (CamelExecutionException ex) {
                     Throwable t = (ex.getCause() == null) ? ex : ex.getCause();
                     String error = t.getClass().getSimpleName()
@@ -127,15 +144,49 @@ public class BatchProcessing {
     }
 
     /**
-     * Start payment request process.
+     * Sends recovery request.
      *
      * @param payment Payment request records.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void startRequest(PaymentRequest payment) {
+    public void sendRequest(PaymentRequest payment, DeliveryMethodType deliveryMethodType) {
         if (payment == null) {
             return;
         }
+        switch (deliveryMethodType) {
+            case DIRECT:
+                RecoveryRequest recoveryRequest = prepareRequest(payment);
+                directProducer.sendBody(recoveryRequest);
+                break;
+            case JMS:
+                JMSRecoveryRequest recoveryRequestJMS = prepareJMSRequest(payment);
+                jmsProducer.sendBody(recoveryRequestJMS);
+                break;
+            case REST:
+                RestRecoveryRequest recoveryRequestRest = prepareRestRequest(payment);
+                restProducer.sendBody(recoveryRequestRest);
+                break;
+        }
+    }
+
+    private RestRecoveryRequest prepareRestRequest(PaymentRequest payment) {
+        RestRecoveryRequest request = new RestRecoveryRequest();
+        request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
+        request.setExternalId(String.valueOf(payment.getId()));
+        request.setLocker((payment.getLocker() == null)
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
+        request.setMessage(payment.getOperationType().name());
+        request.setPause(payment.getPause());
+        request.setProcessingFrom(payment.getProcessingFrom());
+        request.setProcessingLimit(payment.getProcessingLimit());
+        request.setProcessingTo(payment.getProcessingTo());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+        request.setQueueParent(payment.getQueueParent());
+        return request;
+    }
+
+    private RecoveryRequest prepareRequest(PaymentRequest payment){
         RecoveryRequest request = new RecoveryRequest();
         request.setCallbackUri(BillingAdaptorRoute.ADAPTOR_URL);
         request.setExternalId(String.valueOf(payment.getId()));
@@ -149,6 +200,22 @@ public class BatchProcessing {
         request.setProcessingTo(payment.getProcessingTo());
         request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
         request.setQueueParent(payment.getQueueParent());
-        producer.sendBody(request);
+        return request;
+    }
+
+    private JMSRecoveryRequest prepareJMSRequest(PaymentRequest payment){
+        JMSRecoveryRequest request = new JMSRecoveryRequest();
+        request.setExternalId(String.valueOf(payment.getId()));
+        request.setLocker((payment.getLocker() == null)
+                ? this.getClass().getSimpleName() + "-" + String.valueOf(payment.getId())
+                : payment.getLocker());
+        request.setMessage(payment.getOperationType().name());
+        request.setPause(payment.getPause());
+        request.setProcessingFrom(payment.getProcessingFrom());
+        request.setProcessingLimit(payment.getProcessingLimit());
+        request.setProcessingTo(payment.getProcessingTo());
+        request.setQueue(payment.getQueue() == null ? null : payment.getQueue().replace("\\s+", ""));
+        request.setQueueParent(payment.getQueueParent());
+        return request;
     }
 }

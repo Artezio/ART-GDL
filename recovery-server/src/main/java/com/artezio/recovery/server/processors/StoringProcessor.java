@@ -1,17 +1,9 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
+import com.artezio.recovery.server.data.types.*;
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
-import com.artezio.recovery.server.data.types.HoldingCodeEnum;
-import com.artezio.recovery.server.data.types.PauseConfig;
-import com.artezio.recovery.server.data.types.ProcessingCodeEnum;
-import com.artezio.recovery.server.data.types.RecoveryException;
-import com.artezio.recovery.server.data.types.RecoveryStatusEnum;
-import java.util.Date;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -22,6 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Recovery request storing processor.
@@ -71,7 +66,7 @@ public class StoringProcessor implements Processor {
      * Make DB order record from recovery client request.
      *
      * @param exchange Apache Camel ESB exchange message.
-     * @param request Recovery client request message.
+     * @param request  Recovery client request message.
      * @return Recovery DB order record.
      * @throws Exception @see Exception
      */

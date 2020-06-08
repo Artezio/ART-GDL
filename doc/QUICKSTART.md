@@ -8,7 +8,7 @@ Complete the steps described in the rest of this page to start the Recovery exam
 To run this quickstart, you need the following prerequisites:
 
 - Java 1.8 or greater.
-- Maven 3.0.5 or greater.
+- Maven 3.2.3 or greater.
 - GIT 2.22.0 or greater.
 
 # Step 1. Download sources

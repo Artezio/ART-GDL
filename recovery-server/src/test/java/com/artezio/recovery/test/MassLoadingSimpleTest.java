@@ -3,16 +3,11 @@
 package com.artezio.recovery.test;
 
 import com.artezio.recovery.application.RecoveryServerApplication;
-import com.artezio.recovery.server.context.RecoveryRoutes;
-import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryRequest;
+import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
+import com.artezio.recovery.server.context.RecoveryRoutes;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.camel.CamelContext;
-import org.apache.camel.EndpointInject;
-import org.apache.camel.Exchange;
-import org.apache.camel.ExchangePattern;
-import org.apache.camel.Produce;
-import org.apache.camel.ProducerTemplate;
+import org.apache.camel.*;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelSpringBootRunner;
@@ -21,7 +16,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
@@ -35,8 +33,23 @@ import org.springframework.transaction.support.DefaultTransactionDefinition;
 @SpringBootTest(
         classes = RecoveryServerApplication.class,
         properties = {
-            "com.artezio.recovery.seda.consumers=20",
-            "spring.datasource.hikari.maximumPoolSize=20"
+                "com.artezio.recovery.seda.consumers=20",
+                "spring.datasource.hikari.maximumPoolSize=20"
+        }
+)
+@ComponentScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EntityScan(
+        basePackages = {
+                "com.artezio.recovery.server"
+        }
+)
+@EnableJpaRepositories(
+        basePackages = {
+                "com.artezio.recovery.server"
         }
 )
 @MockEndpoints
@@ -79,7 +92,7 @@ public class MassLoadingSimpleTest {
      */
     @Autowired
     private IRecoveryOrderCrud dao;
-    
+
     /**
      * Recovery request income route producer.
      */
@@ -97,7 +110,7 @@ public class MassLoadingSimpleTest {
      */
     @EndpointInject(uri = MOCK_RESULT_URI)
     private MockEndpoint callback;
-    
+
     /**
      * Mass loading test for simple recovery requests definition.
      *

@@ -1,11 +1,7 @@
-/*
- */
 package com.artezio.recovery.server.processors;
 
 import com.artezio.recovery.server.data.access.IRecoveryOrderCrud;
 import com.artezio.recovery.server.data.messages.RecoveryOrder;
-import java.util.Date;
-import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -18,6 +14,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Date;
+import java.util.UUID;
 
 /**
  * Recovery request restoring processor.
@@ -87,7 +86,7 @@ public class RestoringProcessor implements Processor {
                         order.getVersionId(),
                         new Date());
             } catch (Throwable t) {
-                log.trace(t.getClass().getSimpleName() 
+                log.trace(t.getClass().getSimpleName()
                         + ": "
                         + t.getMessage());
             } finally {
@@ -96,5 +95,4 @@ public class RestoringProcessor implements Processor {
         }
         return order;
     }
-
 }
